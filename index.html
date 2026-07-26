@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOYEON LEE — Portfolio</title>
+  <meta name="description" content="Interactive media art, cultural heritage restoration, research portfolio">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="content/data.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a href="#home" id="siteName" class="site-name">PORTFOLIO</a>
+  </header>
+
+  <nav class="side-nav" aria-label="메뉴">
+    <a href="#about"   data-view="about">About</a>
+    <a href="#contact" data-view="contact">Contact</a>
+    <a href="#works"   data-view="works">Works</a>
+    <a href="#studies" data-view="studies">Studies</a>
+  </nav>
+
+  <main id="stage">
+    <section id="view-home" class="view view-home" hidden>
+      <canvas id="homeCanvas"></canvas>
+    </section>
+    <section id="view-works"   class="view view-works"   hidden></section>
+    <section id="view-studies" class="view view-studies" hidden></section>
+    <section id="view-about"   class="view view-about"   hidden></section>
+    <section id="view-contact" class="view view-contact" hidden></section>
+  </main>
+
+  <div id="cursorLabel" class="cursor-label" aria-hidden="true"></div>
+
+  <div id="detailOverlay" class="detail-overlay" hidden>
+    <div class="detail-head">
+      <div class="detail-title-wrap">
+        <h1 id="detailTitle" class="detail-title"></h1>
+        <span id="detailYear" class="detail-year"></span>
+      </div>
+      <button id="detailClose" class="detail-close" aria-label="닫기">닫기 ×</button>
+    </div>
+    <div id="detailBody" class="detail-body"></div>
+  </div>
+
+  <noscript>
+    <p style="padding:120px 40px;font-size:14px;">이 사이트는 JavaScript가 필요합니다. JavaScript를 켜 주세요.</p>
+  </noscript>
+
+  <script src="js/viewer3d.js"></script>
+  <script src="js/home.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,526 @@
+/* ==========================================================
+   DOYEON LEE — Portfolio
+   Black & White · thin lines only · Pretendard
+   ========================================================== */
+
+@font-face {
+  font-family: 'Pretendard Variable';
+  font-weight: 45 920;
+  font-style: normal;
+  font-display: swap;
+  src: url('../assets/fonts/PretendardVariable.woff2') format('woff2-variations');
+}
+
+:root {
+  --black: #000;
+  --white: #fff;
+  --hairline: 1px solid var(--black);
+  --header-h: 76px;
+  --nav-w: 200px;
+  --pad-x: 40px;
+  --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: var(--white);
+  color: var(--black);
+  font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body { overflow: hidden; }
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; }
+img, video { display: block; }
+
+::selection { background: var(--black); color: var(--white); }
+
+/* ---------- header ---------- */
+
+.site-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--pad-x);
+  border-bottom: var(--hairline);
+  background: var(--white);
+  z-index: 20;
+}
+
+.site-name {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* ---------- side nav ---------- */
+
+.side-nav {
+  position: fixed;
+  top: var(--header-h);
+  left: 0;
+  width: var(--nav-w);
+  padding: 44px var(--pad-x);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 20;
+}
+
+.side-nav a {
+  position: relative;
+  width: fit-content;
+  font-size: 13px;
+  font-weight: 460;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.42;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+}
+
+.side-nav a:hover { opacity: 1; }
+
+.side-nav a.active {
+  opacity: 1;
+  transform: translateX(24px);
+}
+
+.side-nav a.active::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: 50%;
+  width: 16px;
+  height: 1px;
+  background: var(--black);
+}
+
+/* ---------- stage / views ---------- */
+
+#stage {
+  position: fixed;
+  inset: var(--header-h) 0 0 0;
+}
+
+.view { position: absolute; inset: 0; }
+.view[hidden] { display: none; }
+
+/* ---------- home (석고 부조 인터랙티브) ---------- */
+
+.view-home {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #fff;
+}
+
+.view-home canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+body.on-home .site-header { background: transparent; }
+
+/* 홈 문양 hover 시 나타나는 주제 키워드 */
+.home-label {
+  position: fixed;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 13px;
+  font-weight: 520;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--black);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.home-label.on { opacity: 0.78; }
+
+/* ---------- works strip ---------- */
+
+.view-works {
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  align-items: center;
+  scrollbar-width: none;
+  cursor: grab;
+}
+.view-works::-webkit-scrollbar { display: none; }
+.view-works.dragging { cursor: grabbing; }
+
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 calc(var(--nav-w) + var(--pad-x)) 0 calc(var(--nav-w) + var(--pad-x));
+  height: 100%;
+}
+
+.strip-item {
+  flex: none;
+  position: relative;
+  height: min(56vh, 600px);
+  animation: strip-in 0.85s var(--ease) backwards;
+  animation-delay: calc(var(--i) * 80ms);
+}
+
+/* hover 프리뷰(영상 하이라이트 / 3D 뷰어) — 대표이미지 위에 겹쳐 두고 hover 시에만 페이드인 */
+.strip-item .strip-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+  pointer-events: none;
+}
+
+.strip-item.previewing .strip-preview.is-ready {
+  opacity: 1;
+}
+
+.strip-preview3d canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* 시작 상태는 keyframe에만 둔다 — 애니메이션이 실행되지 않는 환경에서도 작업물이 항상 보이도록 */
+@keyframes strip-in {
+  from { opacity: 0; transform: translateX(60px); }
+}
+
+.strip-item img,
+.strip-item video {
+  height: 100%;
+  width: auto;
+  max-width: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.strip-empty {
+  padding-left: calc(var(--nav-w) + var(--pad-x));
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+}
+
+/* ---------- cursor label ---------- */
+
+.cursor-label {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 60;
+  pointer-events: none;
+  color: var(--white);
+  mix-blend-mode: difference;
+  font-size: 12px;
+  font-weight: 520;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.cursor-label.on { opacity: 1; }
+
+/* ---------- studies list ---------- */
+
+.view-studies {
+  overflow-y: auto;
+  padding: 44px var(--pad-x) 80px calc(var(--nav-w) + var(--pad-x));
+}
+
+.studies-list { max-width: 760px; }
+
+.study-row {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  padding: 22px 0;
+  border-bottom: var(--hairline);
+  cursor: pointer;
+  transition: opacity 0.25s var(--ease);
+}
+.study-row:first-child { border-top: var(--hairline); }
+.study-row:hover { opacity: 0.45; }
+
+.study-year {
+  flex: none;
+  width: 52px;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+}
+
+.study-title {
+  font-size: 17px;
+  font-weight: 480;
+  letter-spacing: 0.01em;
+}
+
+/* ---------- about / contact ---------- */
+
+.view-about,
+.view-contact {
+  overflow-y: auto;
+  padding: 44px var(--pad-x) 80px calc(var(--nav-w) + var(--pad-x));
+}
+
+.about-inner { max-width: 620px; }
+
+.about-photo {
+  max-width: 340px;
+  width: 100%;
+  height: auto;
+  margin-bottom: 36px;
+}
+
+.about-text p {
+  font-size: 15px;
+  line-height: 1.9;
+  margin-bottom: 1.4em;
+  white-space: pre-line;
+}
+
+.contact-list { max-width: 620px; }
+
+.contact-row {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  padding: 20px 0;
+  border-bottom: var(--hairline);
+}
+.contact-row:first-child { border-top: var(--hairline); }
+
+.contact-label {
+  flex: none;
+  width: 110px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.contact-value { font-size: 15px; }
+.contact-value a { border-bottom: 1px solid var(--black); padding-bottom: 1px; }
+.contact-value a:hover { opacity: 0.5; }
+
+/* ---------- detail overlay ---------- */
+
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--white);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.detail-overlay.open { opacity: 1; }
+.detail-overlay[hidden] { display: none; }
+
+.detail-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  height: var(--header-h);
+  padding: 0 var(--pad-x);
+  border-bottom: var(--hairline);
+}
+
+.detail-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  min-width: 0;
+}
+
+.detail-title {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.detail-year {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  opacity: 0.5;
+}
+
+.detail-close {
+  flex: none;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.detail-close:hover { opacity: 1; }
+
+.detail-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 56px var(--pad-x) 120px;
+}
+
+.detail-media {
+  max-width: 980px;
+  margin: 0 auto 16px;
+}
+
+.detail-media img,
+.detail-media video {
+  max-width: 100%;
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+}
+
+.detail-media video { width: 100%; max-height: 82vh; background: var(--white); }
+
+.detail-media iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: none;
+}
+
+.media-caption {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+  text-align: center;
+}
+
+.detail-media + .detail-media { margin-top: 48px; }
+
+/* 3D viewer */
+.viewer3d {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 720px);
+  border-top: var(--hairline);
+  border-bottom: var(--hairline);
+  touch-action: none;
+}
+.viewer3d canvas { display: block; width: 100%; height: 100%; }
+
+.viewer3d-hint {
+  margin-top: 10px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.4;
+  text-align: center;
+}
+
+.viewer3d-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.detail-desc {
+  max-width: 640px;
+  margin: 72px auto 0;
+  font-size: 15px;
+  line-height: 1.9;
+  white-space: pre-line;
+}
+
+.detail-links {
+  max-width: 640px;
+  margin: 40px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-links a {
+  width: fit-content;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--black);
+  padding-bottom: 1px;
+}
+.detail-links a:hover { opacity: 0.5; }
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .strip-item { animation-duration: 0.01s; animation-delay: 0s; }
+  .detail-overlay { transition: none; }
+}
+
+/* ---------- mobile ---------- */
+
+@media (max-width: 860px) {
+  :root { --pad-x: 20px; --header-h: 60px; }
+
+  .side-nav {
+    top: var(--header-h);
+    left: 0; right: 0;
+    width: auto;
+    flex-direction: row;
+    gap: 22px;
+    padding: 16px var(--pad-x);
+  }
+
+  .side-nav a.active { transform: none; }
+  .side-nav a.active::before {
+    left: 0; top: auto; bottom: -5px;
+    width: 100%;
+  }
+
+  #stage { inset: calc(var(--header-h) + 50px) 0 0 0; }
+
+  .strip { padding: 0 var(--pad-x); }
+  .strip-item { height: 44vh; }
+
+  .view-studies,
+  .view-about,
+  .view-contact {
+    padding: 28px var(--pad-x) 80px;
+  }
+
+  .detail-body { padding: 32px var(--pad-x) 100px; }
+  .detail-desc { margin-top: 48px; }
+  .viewer3d { height: 56vh; }
+  .contact-label { width: 84px; }
+}
