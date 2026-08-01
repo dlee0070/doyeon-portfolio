@@ -18,21 +18,6 @@ window.SITE_DATA = {
   ],
   "works": [
     {
-      "id": "time-of-materiality",
-      "title": "Time of Materiality",
-      "year": "2026",
-      "cover": "content/media/time-of-materiality/time-of-materiality-ver-2-frame-at-1m28s.jpg",
-      "media": [
-        {
-          "type": "video",
-          "src": "content/media/time-of-materiality/time-of-materiality-ver-2.mp4",
-          "caption": ""
-        }
-      ],
-      "description": "This study explores the process of reinterpreting the physical properties of the materials that compose Tteoljam—a unique traditional Korean women's ornament—through the use of generative AI. While Tteoljam has traditionally served as a symbol of status and identity, often confined to static museum displays, this research applies Vilém Flusser’s theory of technical images to deconstruct and reconstruct these artifacts, thereby attempting a digital \"re-coding\" in a contemporary environment. The research process involved an in-depth analysis of the core materials of Tteoljam, such as jade, gold, pearls, coral, and kingfisher feathers, focusing on their luster, transparency, and viscosity. By infusing these properties with creative vision, the materials were visualized anew through generative AI. The resulting work, Time of Materiality, consists of 15 scenes that transform fixed, solid relics into fluid or pulsating organic media, imbuing static artifacts from the past with a sense of flowing temporality. This endeavor demonstrates that Korean cultural heritage can transcend mere documentation to undergo creative interpretation, where traditional materialities within a humanistic context are sublimated into artistic tools. Ultimately, this study holds significance by presenting new possibilities for digital heritage through the fusion of technology and tradition, moving beyond simple visual reproduction to offer a transformative experience for the audience.",
-      "links": []
-    },
-    {
       "id": "ethereal",
       "title": "Ethereal — Unreal Engine",
       "year": "2026",
@@ -45,6 +30,21 @@ window.SITE_DATA = {
         }
       ],
       "description": "외계 행성에서 탐험하는 이야기\n\n\"행성에 처음 도달했는데, 이미 사람이 있었던 흔적이 있다\"",
+      "links": []
+    },
+    {
+      "id": "time-of-materiality",
+      "title": "Time of Materiality",
+      "year": "2026",
+      "cover": "content/media/time-of-materiality/time-of-materiality-ver-2-frame-at-1m28s.jpg",
+      "media": [
+        {
+          "type": "video",
+          "src": "content/media/time-of-materiality/time-of-materiality-ver-2.mp4",
+          "caption": ""
+        }
+      ],
+      "description": "This study explores the process of reinterpreting the physical properties of the materials that compose Tteoljam—a unique traditional Korean women's ornament—through the use of generative AI. While Tteoljam has traditionally served as a symbol of status and identity, often confined to static museum displays, this research applies Vilém Flusser’s theory of technical images to deconstruct and reconstruct these artifacts, thereby attempting a digital \"re-coding\" in a contemporary environment. The research process involved an in-depth analysis of the core materials of Tteoljam, such as jade, gold, pearls, coral, and kingfisher feathers, focusing on their luster, transparency, and viscosity. By infusing these properties with creative vision, the materials were visualized anew through generative AI. The resulting work, Time of Materiality, consists of 15 scenes that transform fixed, solid relics into fluid or pulsating organic media, imbuing static artifacts from the past with a sense of flowing temporality. This endeavor demonstrates that Korean cultural heritage can transcend mere documentation to undergo creative interpretation, where traditional materialities within a humanistic context are sublimated into artistic tools. Ultimately, this study holds significance by presenting new possibilities for digital heritage through the fusion of technology and tradition, moving beyond simple visual reproduction to offer a transformative experience for the audience.",
       "links": []
     },
     {
@@ -75,36 +75,6 @@ window.SITE_DATA = {
         }
       ],
       "description": "Year 2340. A long time has passed since the fall of Earth.\nThe ruins of the city have already been reclaimed by dense forests and lush greenery, achieving a state of recovery driven by nature itself. Through the glass, the distant silhouette of crumbling buildings swallowed by the wild forest stands as a symbol of this era.\nHigh-tech devices requiring precision, like smartphones and robots, have rendered themselves useless due to prolonged power outages and the loss of manufacturing knowledge. Only the most durable and easily repairable machines remain by my side. \nAll I have left to use are ancient box computers, Game Boys, radios, and cassette players.\nThis space is my one and only sanctuary, a refuge for enduring the loneliness of being left entirely alone.\n\n2340년.\n지구가 멸망하고 오랜 시간이 흐른 후.\n도시의 잔해는 이미 울창한 숲과 풀로 뒤덮여 자연에 의한 회복을 이루었다.\n유리창 너머로 야생의 숲에 파묻힌 먼 도시의 부서진 건물 실루엣이 이 시대를 상징한다.\n정밀한 기술을 요하는 스마트폰이나 로봇 같은 기기들은 오랜 전력 부재와 제조 기술 소실로 무용지물이 되었다. 오직 내구성이 강하고 수리가 용이한 기기들 만이 나와 함께 남아있다.\n사용할 수 있는 것은 오래된 박스 컴퓨터, 게임보이, 라디오, 카세트와 같은 것들이 전부이다. \n이 공간은 홀로 남은 나의 유일한 안식처이자 고독을 견디기 위한 곳이다.",
-      "links": []
-    },
-    {
-      "id": "emotion-control-ar",
-      "title": "Emotion Control AR",
-      "year": "2025",
-      "cover": "",
-      "media": [
-        {
-          "type": "model",
-          "src": "content/media/emotion-control-ar/sadness.glb",
-          "caption": " Sadness"
-        },
-        {
-          "type": "model",
-          "src": "content/media/emotion-control-ar/anger.glb",
-          "caption": "Angry"
-        },
-        {
-          "type": "model",
-          "src": "content/media/emotion-control-ar/fear.glb",
-          "caption": "Fear"
-        },
-        {
-          "type": "model",
-          "src": "content/media/emotion-control-ar/delighted.glb",
-          "caption": "Delighted"
-        }
-      ],
-      "description": "시간과 공간의 제약으로 인해 박물관이나 요가원 등을 직접 방문하기 어려운 바쁜 현대인들에게, 모바일 AR 기술을 활용한 '내 손안의 개인 명상관'을 제공하여 심리적 안정과 감정 해소를 돕는 웹을 구축하였다.\n사용자의 4가지 주요 감정에 맞춰 특정 음향 주파수와 미적 시각 요소를 결합하여, 부정적 감정은 완화하고 긍정적 에너지는 극대화하는 개인 맞춤형 AR 힐링 콘텐츠를 제공함.\n\nBy utilizing mobile AR technology, this project offers a \"personal meditation gallery in the palm of your hand\" designed to provide emotional relief and psychological stability for busy modern individuals hindered by time and spatial constraints. The central theme focuses on personalized AR healing content that manages four primary emotions—Anger, Sadness, Fear, and Excitement—through the strategic synergy of specific sound frequencies and aesthetic visual elements, effectively alleviating negative feelings while amplifying positive energy.",
       "links": []
     }
   ],
