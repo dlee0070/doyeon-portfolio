@@ -14,7 +14,9 @@
     FOLLOW: 0.05,      // 커서를 따라오는 관성 (낮을수록 느긋하게 따라옴)
     RISE: 0.05,        // 부조가 떠오르고 가라앉는 속도
     MOTIF_SIZE: 0.5,   // 각 문양의 목표 크기 (화면 짧은 변 대비 비율 — 겹치지 않는 한도에서 자동 축소됨)
-    LABEL_RANGE: 0.65  // 키워드가 뜨는 커서 거리 (문양 크기 대비 비율)
+    LABEL_RANGE: 0.65, // 키워드가 뜨는 커서 거리 (문양 크기 대비 비율)
+    GRAIN: 2.4,        // 입자 한 알의 크기 (CSS px) — 화면의 모든 것이 이 알갱이로 그려진다
+    SCATTER: 3.2       // 가장자리 입자가 흩어지는 최대 거리 (입자 크기 배수)
   };
 
   /* 문양 4종과 주제 키워드 (Adinkra) */
@@ -56,20 +58,39 @@
     'uniform float uFeather;',  // 가장자리 페더 지수 (FX.FEATHER)
     'uniform float uStrength;', // 중심 bump 세기 (FX.STRENGTH)
     'uniform vec2 uTexel;',     // 높이 텍스처 1픽셀 크기
+    'uniform float uTime;',     // 초 단위 시간 (입자의 유기적 움직임)
+    'uniform float uGrain;',    // 입자 한 알의 크기 (device px)
+    'uniform float uScatter;',  // 가장자리 산란 최대 거리 (입자 크기 배수)
     '',
     'float H(vec2 uv){ return texture2D(uHeightT, uv).r; }',
+    'float hash(vec2 q){ return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }',
     '',
     'void main(){',
     '  vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y);',   // 페이지 좌표계 (y 아래)
-    '  vec2 uv = p / uRes;',                                       // 화면 전체 = 텍스처 전체
     '',
     '  float d = distance(p, uMouse);',
     // 종형 커널: 커서 중심에서 bump 높이 최대, 가장자리로 갈수록 0으로 감소 (페더)
     '  float t = clamp(d / uRadius, 0.0, 1.0);',
     '  float m = uAmp * pow(1.0 - t * t, uFeather);',
     '',
-    '  float hx = H(uv + vec2(uTexel.x, 0.0)) - H(uv - vec2(uTexel.x, 0.0));',
-    '  float hy = H(uv + vec2(0.0, uTexel.y)) - H(uv - vec2(0.0, uTexel.y));',
+    // ---- 입자 격자: 화면을 입자 하나 크기의 셀로 나누고 셀마다 고유 난수를 뽑는다 ----
+    '  float G = uGrain;',
+    '  vec2 cell = floor(p / G);',
+    '  float r1 = hash(cell);',
+    '  float r2 = hash(cell + 19.19);',
+    '  float r3 = hash(cell + 47.7);',
+    '',
+    // ---- 유기적 산란: 셀마다 아주 느리게 도는 오프셋 위치에서 필드를 읽는다 ----
+    // 도형 내부는 통계적으로 동일해 형태가 그대로 유지되고,
+    // 경계에서만 입자들이 안팎으로 흩어지며 살아있는 것처럼 숨쉰다
+    '  float ang = r1 * 6.2831853 + uTime * (0.22 + 0.8 * r2);',
+    '  float rad = G * (0.5 + (uScatter - 0.5) * r2 * r2);',       // 대부분은 가까이, 일부만 멀리
+    '  vec2 p2 = p + vec2(cos(ang), sin(ang)) * rad;',
+    '  vec2 uv2 = p2 / uRes;',
+    '',
+    // ---- 석고 부조 라이팅 (산란된 위치 기준) ----
+    '  float hx = H(uv2 + vec2(uTexel.x, 0.0)) - H(uv2 - vec2(uTexel.x, 0.0));',
+    '  float hy = H(uv2 + vec2(0.0, uTexel.y)) - H(uv2 - vec2(0.0, uTexel.y));',
     '  float str = uStrength * m;',                                // 부조 높이는 오직 m(거리 감쇠)으로만 조절
     '  vec3 n = normalize(vec3(-hx * str, -hy * str, 1.0));',
     '',
@@ -78,11 +99,19 @@
     '  vec3 Hv = normalize(Ldir + vec3(0.0, 0.0, 1.0));',
     '  float spec = pow(max(dot(n, Hv), 0.0), 30.0);',
     '',
-    // 평면(n=(0,0,1))일 때 lum이 거의 1(종이 흰색)이 되도록 기준을 잡는다.
-    // bump가 0이 되면 자연스럽게 흰 화면으로 돌아간다 (형태는 그림자가 만든다)
-    '  float lum = 0.997 + (diff - 0.6) * 0.42 + spec * 0.05;',
-    '  float g = fract(sin(dot(floor(p), vec2(12.9898, 78.233))) * 43758.5453);',
-    '  lum += (g - 0.5) * 0.016 * m;',                             // 석고 입자 느낌 (부조 부분만)
+    // ---- 명암 → 입자 밀도: 그늘 사면일수록 입자가 빽빽하고, 빛 받는 면은 비어 흰색 ----
+    '  float shade = clamp((0.60 - diff) * 2.1, 0.0, 1.0);',
+    '  float sil = smoothstep(0.04, 0.6, H(uv2));',                // 실루엣 전체에 옅은 입자 먼지
+    '  float ink = m * clamp(shade * 1.05 + sil * 0.13 - spec * 0.35, 0.0, 1.0);',
+    '',
+    // ---- 셀 안에 둥근 입자 하나 (중심을 흔들어 격자 느낌 제거) ----
+    '  vec2 f = fract(p / G) - 0.5 + (vec2(r1, r3) - 0.5) * 0.55;',
+    '  float grain = 1.0 - smoothstep(0.30, 0.46, length(f));',
+    '',
+    // ---- 확률 스티플: ink가 진할수록 입자가 찍힐 확률이 높다 ----
+    // step(0.02, ink): 해시 밴딩으로 빈 화면에 잔점이 생기지 않게 완전 흰 영역은 차단
+    '  float on = step(r3, ink * 1.25) * step(0.02, ink);',
+    '  float lum = 1.0 - grain * on * (0.72 + 0.28 * r2);',        // 알갱이마다 농도가 조금씩 다르게
     '  gl_FragColor = vec4(vec3(clamp(lum, 0.0, 1.0)), 1.0);',
     '}'
   ].join('\n');
@@ -265,7 +294,7 @@
         var loc = gl.getAttribLocation(prog, 'aPos');
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel'].forEach(function (n) {
+        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel', 'uTime', 'uGrain', 'uScatter'].forEach(function (n) {
           uni[n] = gl.getUniformLocation(prog, n);
         });
         texHeight = gl.createTexture();
@@ -290,7 +319,7 @@
   }
 
   /* 프레임 하나를 지정 상태로 그린다 (테스트에서도 사용) */
-  function renderAt(cssX, cssY, ampV) {
+  function renderAt(cssX, cssY, ampV, timeSec) {
     if (!ready) return false;
     resize();
     gl.uniform2f(uni.uRes, canvas.width, canvas.height);
@@ -299,6 +328,9 @@
     gl.uniform1f(uni.uRadius, Math.min(canvas.width, canvas.height) * FX.RADIUS);
     gl.uniform1f(uni.uFeather, FX.FEATHER);
     gl.uniform1f(uni.uStrength, FX.STRENGTH);
+    gl.uniform1f(uni.uTime, timeSec || 0);
+    gl.uniform1f(uni.uGrain, Math.max(2, FX.GRAIN * dpr));
+    gl.uniform1f(uni.uScatter, FX.SCATTER);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     updateLabel(cssX, cssY, ampV);
     return true;
@@ -326,7 +358,7 @@
       smY += (ty - smY) * FX.FOLLOW;
     }
     amp += (ampTarget - amp) * FX.RISE;
-    renderAt(smX, smY, amp);
+    renderAt(smX, smY, amp, reduceMotion ? 0 : now * 0.001);
     // 부조는 관성 있는 위치(smX,smY)를 쓰지만, 키워드 라벨은 커서 끝(tx,ty)을 그대로 따라간다
     if (tx > -9000) updateLabel(tx, ty, amp);
   }

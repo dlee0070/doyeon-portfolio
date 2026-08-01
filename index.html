@@ -34,6 +34,14 @@
 
   <div id="cursorLabel" class="cursor-label" aria-hidden="true"></div>
 
+  <!-- 홈 키워드 라벨의 가장자리를 입자처럼 거칠게 만드는 필터 -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="grainEdge" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
   <div id="detailOverlay" class="detail-overlay" hidden>
     <div class="detail-head">
       <div class="detail-title-wrap">

@@ -108,5 +108,6 @@ window.SITE_DATA = {
       "links": []
     }
   ],
-  "studies": []
+  "studies": [],
+  "studiesGif": "content/media/studies/giphy.gif"
 };

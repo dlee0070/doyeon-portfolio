@@ -148,6 +148,7 @@ body.on-home .site-header { background: transparent; }
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.4s ease;
+  filter: url(#grainEdge);
 }
 .home-label.on { opacity: 0.78; }
 
@@ -250,6 +251,16 @@ body.on-home .site-header { background: transparent; }
 }
 
 .studies-list { max-width: 760px; }
+
+/* Studies 페이지 GIF — 목록이 비어 있을 때의 볼거리 (관리도구에서 교체 가능) */
+.studies-gif {
+  display: block;
+  width: min(480px, 72vw);
+  height: auto;
+  margin: 48px 0 0;
+  user-select: none;
+  -webkit-user-drag: none;
+}
 
 .study-row {
   display: flex;

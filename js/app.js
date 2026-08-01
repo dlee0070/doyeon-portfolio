@@ -289,7 +289,7 @@
     v.textContent = '';
     var list = el('div', 'studies-list');
     if (!DATA.studies || !DATA.studies.length) {
-      list.appendChild(el('p', 'strip-empty', '아직 등록된 항목이 없습니다.'));
+      if (!DATA.studiesGif) list.appendChild(el('p', 'strip-empty', '아직 등록된 항목이 없습니다.'));
     } else {
       DATA.studies.forEach(function (s) {
         var row = el('a', 'study-row');
@@ -300,6 +300,13 @@
       });
     }
     v.appendChild(list);
+    if (DATA.studiesGif) {
+      var gif = el('img', 'studies-gif');
+      gif.src = DATA.studiesGif;
+      gif.alt = '';
+      gif.draggable = false;
+      v.appendChild(gif);
+    }
   }
 
   /* ---------- about / contact ---------- */
