@@ -85,22 +85,22 @@ window.SITE_DATA = {
       "media": [
         {
           "type": "model",
-          "src": "content/media/emotion-control-ar/슬픔.glb",
+          "src": "content/media/emotion-control-ar/sadness.glb",
           "caption": " Sadness"
         },
         {
           "type": "model",
-          "src": "content/media/emotion-control-ar/분노.glb",
+          "src": "content/media/emotion-control-ar/anger.glb",
           "caption": "Angry"
         },
         {
           "type": "model",
-          "src": "content/media/emotion-control-ar/두려움.glb",
+          "src": "content/media/emotion-control-ar/fear.glb",
           "caption": "Fear"
         },
         {
           "type": "model",
-          "src": "content/media/emotion-control-ar/신남.glb",
+          "src": "content/media/emotion-control-ar/delighted.glb",
           "caption": "Delighted"
         }
       ],
