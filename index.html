@@ -16,10 +16,10 @@
   </header>
 
   <nav class="side-nav" aria-label="메뉴">
-    <a href="#about"   data-view="about">About</a>
-    <a href="#contact" data-view="contact">Contact</a>
     <a href="#works"   data-view="works">Works</a>
     <a href="#studies" data-view="studies">Studies</a>
+    <a href="#about"   data-view="about">About</a>
+    <a href="#contact" data-view="contact">Contact</a>
   </nav>
 
   <main id="stage">
@@ -42,13 +42,13 @@
     </filter>
   </svg>
 
-  <div id="detailOverlay" class="detail-overlay" hidden>
+  <div id="detailOverlay" class="detail-overlay" role="dialog" aria-modal="true" aria-labelledby="detailTitle" hidden>
     <div class="detail-head">
       <div class="detail-title-wrap">
         <h1 id="detailTitle" class="detail-title"></h1>
         <span id="detailYear" class="detail-year"></span>
       </div>
-      <button id="detailClose" class="detail-close" aria-label="닫기">닫기 ×</button>
+      <button id="detailClose" class="detail-close" aria-label="닫기">Close ×</button>
     </div>
     <div id="detailBody" class="detail-body"></div>
   </div>
