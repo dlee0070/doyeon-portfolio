@@ -31,8 +31,8 @@
     { key: 'xr',       label: 'XR',                                      src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
     { key: 'data',     label: '데이터 분석 — Data Analyzing',             src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
   ];
-  /* 하나가 주도하고 셋이 받친다 — 균등 분할이 아니라 무게 있는 여백 */
-  var SCALES = [1.35, 0.75, 0.95, 0.65];
+  /* 네 문양은 같은 크기 — 위계 없이 대등하게 */
+  var SCALES = [1.0, 1.0, 1.0, 1.0];
   var MAX_SCALE = Math.max.apply(null, SCALES);
 
   var canvas = null, gl = null, prog = null, quad = null, texHeight = null;
