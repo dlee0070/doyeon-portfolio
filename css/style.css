@@ -20,9 +20,11 @@
   --pad-x: 40px;
   --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
   --muted: 0.5;              /* 보조 텍스트의 단일 회색값 */
-  --ls-display: 0.3em;       /* 큰 이름들: 워드마크, 이름표, 상세 제목 */
+  --ls-display: 0.3em;       /* 이름표들 — 크기 무관, 정체성 표기 (워드마크, 방 이름, 상세 제목) */
   --ls-label: 0.14em;        /* 기능 라벨: 내비, 버튼, 커서 라벨 */
   --ls-data: 0.08em;         /* 데이터: 연도, 캡션, 링크 */
+  --line-faint: 0.15;        /* 건축선: 기둥, 걸이줄, 진행 트랙 */
+  --line-soft: 0.3;          /* 강조선: 밑줄, 아키볼트 */
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -159,7 +161,7 @@ img, video { display: block; }
   left: var(--nav-w);
   width: 1px;
   background: var(--black);
-  opacity: 0.14;
+  opacity: var(--line-faint);
   pointer-events: none;
 }
 
@@ -214,7 +216,7 @@ body.on-home .site-header { background: transparent; }
   pointer-events: none;
   font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.22em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   line-height: 1;
   color: var(--black);
@@ -256,7 +258,7 @@ body.on-home .site-header { background: transparent; }
   top: 50%;
   height: 1px;
   background: var(--black);
-  opacity: 0.18;
+  opacity: var(--line-faint);
 }
 
 .strip-item {
@@ -315,10 +317,10 @@ body.on-home .site-header { background: transparent; }
 .strip-progress {
   position: fixed;
   bottom: 40px;
-  left: calc(var(--nav-w) + var(--pad-x));
+  left: var(--nav-w);   /* 선의 축(200px) — 걸이줄·기둥과 같은 계보 */
   width: 140px;
   height: 1px;
-  background: rgba(0, 0, 0, 0.18);
+  background: rgba(0, 0, 0, var(--line-faint));
   pointer-events: none;
 }
 .strip-progress i {
@@ -426,7 +428,7 @@ body.on-home .site-header { background: transparent; }
   height: auto;
   margin: 12px 0 48px 12px;
   border-radius: 999px 999px 0 0;   /* 로마네스크 아치 — 초상은 벽감(niche) 안에 놓인다 */
-  outline: 1px solid rgba(0, 0, 0, 0.35);   /* 아키볼트 — 겹아치 한 겹이 벽감의 깊이를 만든다 */
+  outline: 1px solid rgba(0, 0, 0, var(--line-soft));   /* 아키볼트 — 겹아치 한 겹이 벽감의 깊이를 만든다 */
   outline-offset: 10px;
 }
 
@@ -460,7 +462,7 @@ body.on-home .site-header { background: transparent; }
 .contact-value { font-size: 15px; }
 /* 링크 hover — 흐려지지 않고 밑줄이 짙어진다 (hover = 더 또렷해진다는 사이트 규칙) */
 .contact-value a {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, var(--line-soft));
   padding-bottom: 1px;
   transition: border-color 0.25s var(--ease);
 }
@@ -568,17 +570,7 @@ body.on-home .site-header { background: transparent; }
   text-align: center;
 }
 
-/* 반원 아치 — 이름표 아치의 절반 크기. 사이트의 곡선 어휘는 하나다 */
-.media-caption::before {
-  content: '';
-  display: block;
-  width: 16px;
-  height: 8px;
-  margin: 0 auto 10px;
-  border: 1px solid var(--black);
-  border-bottom: none;
-  border-radius: 999px 999px 0 0;
-}
+/* 캡션은 장식 없이 — 아치는 이름표(40x20)와 벽감, 두 스케일에서만 산다 */
 
 .detail-media + .detail-media { margin-top: 48px; }
 
@@ -609,7 +601,7 @@ body.on-home .site-header { background: transparent; }
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  letter-spacing: 0.2em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   opacity: var(--muted);
   pointer-events: none;
@@ -635,7 +627,7 @@ body.on-home .site-header { background: transparent; }
   width: fit-content;
   font-size: 13px;
   letter-spacing: var(--ls-data);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(0, 0, 0, var(--line-soft));
   padding-bottom: 1px;
   transition: border-color 0.25s var(--ease);
 }
@@ -693,7 +685,7 @@ body.on-home .site-header { background: transparent; }
   .view-label { margin-bottom: 32px; }
   .about-photo { margin: 8px 0 40px 8px; }
 
-  .detail-title { font-size: 18px; letter-spacing: 0.16em; }
+  .detail-title { font-size: 18px; letter-spacing: var(--ls-label); }
   .detail-body { padding: 32px var(--pad-x) 100px; }
   .detail-desc { margin-top: 48px; }
   .viewer3d { height: 56vh; }
