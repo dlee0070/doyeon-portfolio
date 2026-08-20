@@ -89,6 +89,18 @@
       return;
     }
     var strip = el('div', 'strip');
+    /* 터치 기기: hover가 없으니 벽 중앙에 온 작품이 스스로 재생된다 */
+    var touchMode = window.matchMedia && window.matchMedia('(hover: none)').matches;
+    var touchIO = null;
+    if (touchMode && window.IntersectionObserver) {
+      touchIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          if (!en.target._pv) return;
+          if (en.intersectionRatio >= 0.7) en.target._pv.enter();
+          else en.target._pv.leave();
+        });
+      }, { root: v, threshold: [0, 0.7] });
+    }
     DATA.works.forEach(function (w, i) {
       var a = el('a', 'strip-item');
       a.href = '#w/' + encodeURIComponent(w.id);
@@ -125,17 +137,23 @@
           if (vid.currentTime >= hlStart + HIGHLIGHT_LEN || vid.ended) vid.currentTime = hlStart;
         });
 
-        a.addEventListener('mouseenter', function () {
+        var enterPv = function () {
           a.classList.add('previewing');
           if (hlStart) vid.currentTime = hlStart;
           var p = vid.play();
           if (p && p.catch) p.catch(function () {});
-        });
-        a.addEventListener('mouseleave', function () {
+        };
+        var leavePv = function () {
           a.classList.remove('previewing');
           vid.pause();
           if (!w.cover) vid.currentTime = 0; // 커버 없으면 첫 프레임이 대표이미지 역할
-        });
+        };
+        a.addEventListener('mouseenter', enterPv);
+        a.addEventListener('mouseleave', leavePv);
+        if (touchIO) {
+          a._pv = { enter: enterPv, leave: leavePv };
+          touchIO.observe(a);
+        }
 
         if (w.cover) {
           /* 대표이미지가 바닥, 영상은 hover 시에만 위로 페이드인 */
@@ -214,6 +232,30 @@
       strip.appendChild(a);
     });
     v.appendChild(strip);
+
+    /* 벽 진행선 — 넘칠 때만 나타난다 */
+    var prog = el('div', 'strip-progress');
+    var thumb = document.createElement('i');
+    prog.appendChild(thumb);
+    v.appendChild(prog);
+    function updProgress() {
+      var max = v.scrollWidth - v.clientWidth;
+      prog.style.display = max > 4 ? '' : 'none';
+      if (max <= 0) return;
+      // thumb 폭 = 보이는 비율 — 벽이 얼마나 긴지 정직하게 말한다
+      thumb.style.width = Math.max(12, prog.clientWidth * v.clientWidth / v.scrollWidth) + 'px';
+      var track = prog.clientWidth - thumb.offsetWidth;
+      thumb.style.transform = 'translateX(' + (v.scrollLeft / max) * track + 'px)';
+    }
+    v.addEventListener('scroll', updProgress);
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(updProgress);
+      ro.observe(v);       // 뷰가 드러나거나 크기가 바뀔 때
+      ro.observe(strip);   // 이미지가 로드되어 벽이 길어질 때
+    } else {
+      window.addEventListener('resize', updProgress);
+    }
+    updProgress();
   }
 
   /* wheel → horizontal */
@@ -240,10 +282,12 @@
         v.scrollLeft = startLeft - dx;
       }
     });
-    window.addEventListener('pointerup', function () {
+    function endDrag() {
       down = false;
       v.classList.remove('dragging');
-    });
+    }
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
     v.addEventListener('click', function (e) {
       if (dragged) { e.preventDefault(); e.stopPropagation(); dragged = false; }
     }, true);
@@ -287,8 +331,10 @@
   function buildStudies() {
     var v = stage.studies;
     v.textContent = '';
+    v.appendChild(el('p', 'view-label', 'Studies'));
+    var hasList = DATA.studies && DATA.studies.length;
     var list = el('div', 'studies-list');
-    if (!DATA.studies || !DATA.studies.length) {
+    if (!hasList) {
       if (!DATA.studiesGif) list.appendChild(el('p', 'strip-empty', '아직 등록된 항목이 없습니다.'));
     } else {
       DATA.studies.forEach(function (s) {
@@ -299,7 +345,7 @@
         list.appendChild(row);
       });
     }
-    v.appendChild(list);
+    if (hasList || !DATA.studiesGif) v.appendChild(list);
     if (DATA.studiesGif) {
       var gif = el('img', 'studies-gif');
       gif.src = DATA.studiesGif;
@@ -314,6 +360,7 @@
   function buildAbout() {
     var v = stage.about;
     v.textContent = '';
+    v.appendChild(el('p', 'view-label', 'About'));
     var inner = el('div', 'about-inner');
     var ab = DATA.about || {};
     if (ab.image) {
@@ -341,6 +388,7 @@
   function buildContact() {
     var v = stage.contact;
     v.textContent = '';
+    v.appendChild(el('p', 'view-label', 'Contact'));
     var list = el('div', 'contact-list');
     (DATA.contact || []).forEach(function (c) {
       var row = el('div', 'contact-row');
@@ -376,10 +424,22 @@
     activeViewers = [];
   }
 
+  function setInert(on) {
+    ['stage'].forEach(function (id) {
+      var n = document.getElementById(id);
+      if (n) n.inert = on;
+    });
+    var nav = document.querySelector('.side-nav');
+    if (nav) nav.inert = on;
+    var head = document.querySelector('.site-header');
+    if (head) head.inert = on;
+  }
+
   function openDetail(item) {
     hideLabel();
     disposeViewers();
     overlayTitle.textContent = item.title || '';
+    overlayTitle.classList.toggle('ko', /[가-힣]/.test(item.title || ''));
     overlayYear.textContent = item.year || '';
     overlayBody.textContent = '';
     overlayBody.scrollTop = 0;
@@ -438,16 +498,29 @@
 
     lastFocus = document.activeElement;
     overlay.hidden = false;
+    setInert(true);   // 오버레이가 열려 있는 동안 뒤 페이지는 잠긴다 (Tab이 새지 않도록)
     requestAnimationFrame(function () { overlay.classList.add('open'); });
     overlayClose.focus();
   }
 
   function closeDetail() {
     if (overlay.hidden) return;
+    var wasOpen = overlay.classList.contains('open');   // 열림 전환이 아직이면 스냅 닫기
     overlay.classList.remove('open');
     disposeViewers();
-    overlay.hidden = true;
+    setInert(false);
     if (lastFocus && lastFocus.focus) lastFocus.focus();
+    /* 퇴장 모션(0.3s)이 끝난 뒤에 숨긴다 — 진입만 있고 퇴장이 스냅이면 값싸 보인다 */
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      if (!overlay.classList.contains('open')) overlay.hidden = true;
+    }
+    if (reduce || !wasOpen) { finish(); return; }
+    overlay.addEventListener('transitionend', finish, { once: true });
+    setTimeout(finish, 400);
   }
 
   function mountModel(box, src) {

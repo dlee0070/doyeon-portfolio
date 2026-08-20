@@ -15,10 +15,14 @@
   --black: #000;
   --white: #fff;
   --hairline: 1px solid var(--black);
-  --header-h: 76px;
+  --header-h: 80px;          /* 40px 모듈 × 2 — nav 200 = 5M, pad 40 = 1M */
   --nav-w: 200px;
   --pad-x: 40px;
   --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
+  --muted: 0.5;              /* 보조 텍스트의 단일 회색값 */
+  --ls-display: 0.3em;       /* 큰 이름들: 워드마크, 이름표, 상세 제목 */
+  --ls-label: 0.14em;        /* 기능 라벨: 내비, 버튼, 커서 라벨 */
+  --ls-data: 0.08em;         /* 데이터: 연도, 캡션, 링크 */
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -43,6 +47,15 @@ img, video { display: block; }
 
 ::selection { background: var(--black); color: var(--white); }
 
+/* 키보드 초점 — hover와 같은 언어, 얇은 선 하나 */
+:focus-visible { outline: 1px solid var(--black); outline-offset: 4px; }
+
+/* 스크롤바 — 가장 얇은 선 하나 */
+* { scrollbar-width: thin; scrollbar-color: var(--black) transparent; }
+*::-webkit-scrollbar { width: 3px; height: 3px; }
+*::-webkit-scrollbar-thumb { background: var(--black); }
+*::-webkit-scrollbar-track { background: transparent; }
+
 /* ---------- header ---------- */
 
 .site-header {
@@ -58,10 +71,11 @@ img, video { display: block; }
 }
 
 .site-name {
-  font-size: 15px;
-  font-weight: 650;
-  letter-spacing: 0.22em;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: var(--ls-display);
   text-transform: uppercase;
+  line-height: 1;
 }
 
 /* ---------- side nav ---------- */
@@ -71,10 +85,10 @@ img, video { display: block; }
   top: var(--header-h);
   left: 0;
   width: var(--nav-w);
-  padding: 44px var(--pad-x);
+  padding: 40px var(--pad-x);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
   z-index: 20;
 }
 
@@ -82,14 +96,16 @@ img, video { display: block; }
   position: relative;
   width: fit-content;
   font-size: 13px;
-  font-weight: 460;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  opacity: 0.42;
+  line-height: 1;
+  opacity: var(--muted);
   transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
 }
 
-.side-nav a:hover { opacity: 1; }
+.side-nav a:hover,
+.side-nav a:focus-visible { opacity: 1; }
 
 .side-nav a.active {
   opacity: 1;
@@ -116,6 +132,62 @@ img, video { display: block; }
 .view { position: absolute; inset: 0; }
 .view[hidden] { display: none; }
 
+/* 뷰 진입 — 내용이 바닥에서 조용히 떠오른다 (works는 자체 리듬이 있어 제외) */
+.view-studies > *,
+.view-about > *,
+.view-contact > * {
+  animation: view-in 0.6s var(--ease) backwards;
+}
+/* 이름표가 먼저, 내용은 반 박자 뒤에 */
+.view-studies > * + *,
+.view-about > * + *,
+.view-contact > * + * {
+  animation-delay: 90ms;
+}
+@keyframes view-in {
+  from { opacity: 0; transform: translateY(18px); }
+}
+
+/* 네이브 기둥선 — 콘텐츠 페이지의 수직 축. 헤더의 수평선과 십자 구도를 이룬다 */
+.view-studies::before,
+.view-about::before,
+.view-contact::before {
+  content: '';
+  position: fixed;
+  top: var(--header-h);
+  bottom: 0;
+  left: var(--nav-w);
+  width: 1px;
+  background: var(--black);
+  opacity: 0.14;
+  pointer-events: none;
+}
+
+/* ---------- section marker (각 방의 이름표 — 로마네스크 아치 아래 걸린다) ---------- */
+
+.view-label {
+  width: fit-content;
+  margin-bottom: 40px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: var(--ls-display);
+  text-transform: uppercase;
+  line-height: 1;
+  opacity: var(--muted);
+}
+
+/* 아치가 라벨의 폭을 받친다 — 11px에서는 곡률이 죽는다 */
+.view-label::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 20px;
+  margin-bottom: 10px;
+  border: 1px solid var(--black);
+  border-bottom: none;
+  border-radius: 999px 999px 0 0;
+}
+
 /* ---------- home (석고 부조 인터랙티브) ---------- */
 
 .view-home {
@@ -141,13 +213,14 @@ body.on-home .site-header { background: transparent; }
   z-index: 2;
   pointer-events: none;
   font-size: 13px;
-  font-weight: 520;
+  font-weight: 500;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+  line-height: 1;
   color: var(--black);
   white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.3s var(--ease);
   filter: url(#grainEdge);
 }
 .home-label.on { opacity: 0.78; }
@@ -166,11 +239,24 @@ body.on-home .site-header { background: transparent; }
 .view-works.dragging { cursor: grabbing; }
 
 .strip {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 28px;
   padding: 0 calc(var(--nav-w) + var(--pad-x)) 0 calc(var(--nav-w) + var(--pad-x));
   height: 100%;
+}
+
+/* 갤러리 걸이줄 — 기둥축(200px)에서 발원해 작품 뒤로 이어지는 수평 기준선 */
+.strip::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: var(--nav-w); right: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--black);
+  opacity: 0.18;
 }
 
 .strip-item {
@@ -178,8 +264,16 @@ body.on-home .site-header { background: transparent; }
   position: relative;
   height: min(56vh, 600px);
   animation: strip-in 0.85s var(--ease) backwards;
-  animation-delay: calc(var(--i) * 80ms);
+  animation-delay: calc(min(var(--i) * 80ms, 480ms));
+  transition: transform 0.45s var(--ease);
 }
+
+/* 부조가 떠오르듯 — hover 시 작품이 벽에서 살짝 들린다 */
+.strip-item:hover { transform: translateY(-8px); }
+
+/* 갤러리 벽의 세로 리듬 — 걸이줄을 축으로 ±3vh 대칭으로 걸린다 */
+.strip-item:nth-child(even) { margin-top: 6vh; }
+.strip-item:nth-child(odd) { margin-bottom: 6vh; }
 
 /* hover 프리뷰(영상 하이라이트 / 3D 뷰어) — 대표이미지 위에 겹쳐 두고 hover 시에만 페이드인 */
 .strip-item .strip-preview {
@@ -217,11 +311,30 @@ body.on-home .site-header { background: transparent; }
   -webkit-user-drag: none;
 }
 
+/* 벽의 현재 위치 — 선 위를 미끄러지는 짧은 선 하나 */
+.strip-progress {
+  position: fixed;
+  bottom: 40px;
+  left: calc(var(--nav-w) + var(--pad-x));
+  width: 140px;
+  height: 1px;
+  background: rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+.strip-progress i {
+  position: absolute;
+  top: 0; left: 0;
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: var(--black);
+}
+
 .strip-empty {
   padding-left: calc(var(--nav-w) + var(--pad-x));
   font-size: 13px;
-  letter-spacing: 0.08em;
-  opacity: 0.5;
+  letter-spacing: 0;   /* 국문 문장 — 라틴 자간 금지 */
+  opacity: var(--muted);
 }
 
 /* ---------- cursor label ---------- */
@@ -234,12 +347,13 @@ body.on-home .site-header { background: transparent; }
   color: var(--white);
   mix-blend-mode: difference;
   font-size: 12px;
-  font-weight: 520;
-  letter-spacing: 0.18em;
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
+  line-height: 1;
   white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s var(--ease);
 }
 .cursor-label.on { opacity: 1; }
 
@@ -247,7 +361,7 @@ body.on-home .site-header { background: transparent; }
 
 .view-studies {
   overflow-y: auto;
-  padding: 44px var(--pad-x) 80px calc(var(--nav-w) + var(--pad-x));
+  padding: 40px var(--pad-x) 80px calc(var(--nav-w) + var(--pad-x));
 }
 
 .studies-list { max-width: 760px; }
@@ -262,29 +376,37 @@ body.on-home .site-header { background: transparent; }
   -webkit-user-drag: none;
 }
 
+/* 목록이 없을 때 — 신랑(nave)의 중앙축 위에 홀로 놓인다 */
+.view-label + .studies-gif { margin: 14vh auto 0; }
+
 .study-row {
   display: flex;
   align-items: baseline;
   gap: 28px;
-  padding: 22px 0;
+  padding: 20px 0;
   border-bottom: var(--hairline);
   cursor: pointer;
-  transition: opacity 0.25s var(--ease);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
 }
 .study-row:first-child { border-top: var(--hairline); }
-.study-row:hover { opacity: 0.45; }
+/* hover — 물러나지 않고 반 걸음 다가온다. 연도가 함께 깨어난다 */
+.study-row:hover,
+.study-row:focus-visible { transform: translateX(12px); }
+.study-row:hover .study-year,
+.study-row:focus-visible .study-year { opacity: 1; }
 
 .study-year {
   flex: none;
-  width: 52px;
+  width: 110px;   /* contact 라벨 열과 같은 수직선에서 두 번째 열이 시작된다 */
   font-size: 12px;
-  letter-spacing: 0.1em;
-  opacity: 0.5;
+  letter-spacing: var(--ls-data);
+  opacity: var(--muted);
+  transition: opacity 0.3s var(--ease);
 }
 
 .study-title {
-  font-size: 17px;
-  font-weight: 480;
+  font-size: 18px;
+  font-weight: 450;
   letter-spacing: 0.01em;
 }
 
@@ -293,16 +415,19 @@ body.on-home .site-header { background: transparent; }
 .view-about,
 .view-contact {
   overflow-y: auto;
-  padding: 44px var(--pad-x) 80px calc(var(--nav-w) + var(--pad-x));
+  padding: 40px var(--pad-x) 80px calc(var(--nav-w) + var(--pad-x));
 }
 
-.about-inner { max-width: 620px; }
+.about-inner { max-width: 640px; }
 
 .about-photo {
   max-width: 340px;
   width: 100%;
   height: auto;
-  margin-bottom: 36px;
+  margin: 12px 0 48px 12px;
+  border-radius: 999px 999px 0 0;   /* 로마네스크 아치 — 초상은 벽감(niche) 안에 놓인다 */
+  outline: 1px solid rgba(0, 0, 0, 0.35);   /* 아키볼트 — 겹아치 한 겹이 벽감의 깊이를 만든다 */
+  outline-offset: 10px;
 }
 
 .about-text p {
@@ -312,7 +437,7 @@ body.on-home .site-header { background: transparent; }
   white-space: pre-line;
 }
 
-.contact-list { max-width: 620px; }
+.contact-list { max-width: 640px; }
 
 .contact-row {
   display: flex;
@@ -327,14 +452,20 @@ body.on-home .site-header { background: transparent; }
   flex: none;
   width: 110px;
   font-size: 12px;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  opacity: 0.5;
+  opacity: var(--muted);
 }
 
 .contact-value { font-size: 15px; }
-.contact-value a { border-bottom: 1px solid var(--black); padding-bottom: 1px; }
-.contact-value a:hover { opacity: 0.5; }
+/* 링크 hover — 흐려지지 않고 밑줄이 짙어진다 (hover = 더 또렷해진다는 사이트 규칙) */
+.contact-value a {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  padding-bottom: 1px;
+  transition: border-color 0.25s var(--ease);
+}
+.contact-value a:hover,
+.contact-value a:focus-visible { border-color: var(--black); }
 
 /* ---------- detail overlay ---------- */
 
@@ -346,9 +477,12 @@ body.on-home .site-header { background: transparent; }
   display: flex;
   flex-direction: column;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transform: translateY(14px);
+  transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
 }
-.detail-overlay.open { opacity: 1; }
+.detail-overlay.open { opacity: 1; transform: none; }
+/* 퇴장은 진입보다 반 박자 빠르게 */
+.detail-overlay:not(.open) { transition-duration: 0.3s; }
 .detail-overlay[hidden] { display: none; }
 
 .detail-head {
@@ -370,30 +504,32 @@ body.on-home .site-header { background: transparent; }
 }
 
 .detail-title {
-  font-size: 15px;
-  font-weight: 650;
-  letter-spacing: 0.14em;
+  font-size: 24px;
+  font-weight: 330;
+  letter-spacing: var(--ls-display);
   text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.detail-title.ko { letter-spacing: 0.04em; }   /* 국문 제목은 라틴 자간을 벗는다 */
 
 .detail-year {
   font-size: 12px;
-  letter-spacing: 0.1em;
-  opacity: 0.5;
+  letter-spacing: var(--ls-data);
+  opacity: var(--muted);
 }
 
 .detail-close {
   flex: none;
   font-size: 13px;
-  letter-spacing: 0.14em;
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  opacity: 0.5;
-  transition: opacity 0.2s;
+  opacity: var(--muted);
+  transition: opacity 0.2s var(--ease);
 }
-.detail-close:hover { opacity: 1; }
+.detail-close:hover,
+.detail-close:focus-visible { opacity: 1; }
 
 .detail-body {
   flex: 1;
@@ -425,11 +561,23 @@ body.on-home .site-header { background: transparent; }
 }
 
 .media-caption {
-  margin-top: 10px;
+  margin-top: 14px;
   font-size: 12px;
-  letter-spacing: 0.06em;
-  opacity: 0.5;
+  letter-spacing: var(--ls-data);
+  opacity: var(--muted);
   text-align: center;
+}
+
+/* 반원 아치 — 이름표 아치의 절반 크기. 사이트의 곡선 어휘는 하나다 */
+.media-caption::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 8px;
+  margin: 0 auto 10px;
+  border: 1px solid var(--black);
+  border-bottom: none;
+  border-radius: 999px 999px 0 0;
 }
 
 .detail-media + .detail-media { margin-top: 48px; }
@@ -448,9 +596,9 @@ body.on-home .site-header { background: transparent; }
 .viewer3d-hint {
   margin-top: 10px;
   font-size: 11px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0;   /* 국문 포함 문장 */
   text-transform: uppercase;
-  opacity: 0.4;
+  opacity: var(--muted);
   text-align: center;
 }
 
@@ -463,7 +611,7 @@ body.on-home .site-header { background: transparent; }
   font-size: 12px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  opacity: 0.45;
+  opacity: var(--muted);
   pointer-events: none;
 }
 
@@ -486,17 +634,22 @@ body.on-home .site-header { background: transparent; }
 .detail-links a {
   width: fit-content;
   font-size: 13px;
-  letter-spacing: 0.08em;
-  border-bottom: 1px solid var(--black);
+  letter-spacing: var(--ls-data);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
   padding-bottom: 1px;
+  transition: border-color 0.25s var(--ease);
 }
-.detail-links a:hover { opacity: 0.5; }
+.detail-links a:hover,
+.detail-links a:focus-visible { border-color: var(--black); }
 
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
   .strip-item { animation-duration: 0.01s; animation-delay: 0s; }
   .detail-overlay { transition: none; }
+  .view-studies > *,
+  .view-about > *,
+  .view-contact > * { animation: none; }
 }
 
 /* ---------- mobile ---------- */
@@ -522,7 +675,9 @@ body.on-home .site-header { background: transparent; }
   #stage { inset: calc(var(--header-h) + 50px) 0 0 0; }
 
   .strip { padding: 0 var(--pad-x); }
+  .strip::before { left: 0; }
   .strip-item { height: 44vh; }
+  .strip-progress { left: var(--pad-x); bottom: 24px; }
 
   .view-studies,
   .view-about,
@@ -530,6 +685,15 @@ body.on-home .site-header { background: transparent; }
     padding: 28px var(--pad-x) 80px;
   }
 
+  /* 모바일 — 메뉴가 가로로 눕고 기둥선의 자리가 사라진다 */
+  .view-studies::before,
+  .view-about::before,
+  .view-contact::before { display: none; }
+
+  .view-label { margin-bottom: 32px; }
+  .about-photo { margin: 8px 0 40px 8px; }
+
+  .detail-title { font-size: 18px; letter-spacing: 0.16em; }
   .detail-body { padding: 32px var(--pad-x) 100px; }
   .detail-desc { margin-top: 48px; }
   .viewer3d { height: 56vh; }

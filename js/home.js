@@ -34,6 +34,7 @@
   var ready = false, active = false, failed = false, rafId = null, initPromise = null;
 
   var images = [];      // 로드된 문양 이미지
+  var damaskImg = null; // 배경 다마스크 부조 (벽지처럼 아주 옅게 깔린다)
   var placed = [];      // 현재 배치 [{x, y, size}] (CSS px) — 리사이즈 시 재분산
   var labelEl = null;
   var rescatterTimer = null;
@@ -156,17 +157,19 @@
     if (!w || !h) return;
     var minSide = Math.min(w, h);
     var narrow = w <= 860;                 // 모바일: 상단에 가로 메뉴가 있다
-    var topSafe = narrow ? 126 : 86;       // 헤더(+메뉴) 아래부터 배치
+    var topSafe = narrow ? 126 : 90;       // 헤더(+메뉴) 아래부터 배치
+    var leftSafe = narrow ? 0 : 200;       // 데스크톱: 내비 축(200px) 오른쪽 — 콘텐츠 페이지와 같은 축
     var pad = 14;
 
     // 2x2 지터 격자 — 어떤 화면 비율에서도 네 구역에 하나씩 고르게
     var usableH = h - topSafe - pad;
+    var usableW = w - leftSafe - pad;
     var stagger = (w > h ? 0.05 : 0.025) * usableH;   // 열끼리 살짝 어긋나게 (유기적 분산)
     var cells = [];
     for (var ci = 0; ci < 2; ci++) {
       for (var ri = 0; ri < 2; ri++) {
         cells.push({
-          x: w * (ci === 0 ? 0.26 : 0.74) + (Math.random() - 0.5) * w * 0.05,
+          x: leftSafe + usableW * (ci === 0 ? 0.26 : 0.74) + (Math.random() - 0.5) * usableW * 0.05,
           y: topSafe + usableH * (ri === 0 ? 0.27 : 0.70) +
              (ci === 0 ? -1 : 1) * stagger + (Math.random() - 0.5) * usableH * 0.04
         });
@@ -182,10 +185,11 @@
     var maxScale = 1.04;                   // SCALES의 최댓값
     var cap = minSide * FX.MOTIF_SIZE;
     var edgeTop = topSafe - 46;            // 문양 위쪽은 헤더 라인 살짝 아래까지 허용
+    var edgeLeft = leftSafe ? leftSafe - 40 : pad;   // 내비 축은 문양의 살짝 걸침만 허용
     var edgeBleed = maxScale * 0.92;       // 가장자리는 문양의 ~4%까지 살짝 걸쳐도 허용 (더 크게)
     for (var a = 0; a < cells.length; a++) {
       cap = Math.min(cap,
-        2 * (cells[a].x - pad) / edgeBleed,
+        2 * (cells[a].x - edgeLeft) / edgeBleed,
         2 * (w - pad - cells[a].x) / edgeBleed,
         2 * (cells[a].y - edgeTop) / edgeBleed,
         2 * (h - pad - cells[a].y) / edgeBleed);
@@ -211,13 +215,28 @@
     var ctx = c.getContext('2d');
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, cw, ch);
+    // 배경 다마스크 — 벽 전체가 아주 얕게 조각된 석고 벽지 (문양보다 한참 낮은 높이)
+    if (damaskImg) {
+      ctx.globalAlpha = 0.20;
+      var tw = Math.round(Math.max(340, Math.min(w, h) * 0.62) * s);
+      var th = tw * 2;   // 원본 비율 1:2
+      for (var ty2 = 0; ty2 < ch; ty2 += th) {
+        for (var tx2 = 0; tx2 < cw; tx2 += tw) {
+          ctx.drawImage(damaskImg, tx2, ty2, tw, th);
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
     // 화면 해상도 기준의 블러를 합성 시점에 추가해, 문양 크기와 무관하게
     // 석고 특유의 완만한 경사(부드러운 높이 그라데이션)를 만든다
+    // lighten: 문양이 다마스크 위에 "겹쳐 발린" 게 아니라 더 높은 부조로 올라온다
+    ctx.globalCompositeOperation = 'lighten';
     try { ctx.filter = 'blur(2.4px)'; } catch (e) {}
     placed.forEach(function (p, i) {
       ctx.drawImage(images[i], (p.x - p.size / 2) * s, (p.y - p.size / 2) * s, p.size * s, p.size * s);
     });
     try { ctx.filter = 'none'; } catch (e) {}
+    ctx.globalCompositeOperation = 'source-over';
     gl.bindTexture(gl.TEXTURE_2D, texHeight);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -322,6 +341,11 @@
           ready = true;
           resolve();
         }).catch(reject);
+        // 다마스크는 장식 — 실패해도 홈은 그대로 동작한다
+        loadImage('assets/pattern/damask-height.svg').then(function (img) {
+          damaskImg = img;
+          if (ready) compose();
+        }).catch(function () {});
       } catch (e) { reject(e); }
     });
     initPromise.catch(function () {
