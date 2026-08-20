@@ -17,17 +17,23 @@
     LABEL_RANGE: 0.65, // 키워드가 뜨는 커서 거리 (문양 크기 대비 비율)
     GRAIN: 0.5,        // 입자 한 알의 크기 (CSS px) — 화면의 모든 것이 이 알갱이로 그려진다
     SCATTER: 3.2,      // 가장자리 입자가 흩어지는 최대 거리 (입자 크기 배수)
-    DRAG: 0.55         // 마우스를 움직일 때 입자가 딸려오는 정도 (0 = 없음)
+    DRAG: 0.55,        // 마우스를 움직일 때 입자가 딸려오는 정도 (0 = 없음)
+    BURST_R: 0.26,     // 클릭 파문의 최대 반경 (화면 짧은 변 대비 비율)
+    BURST_MS: 1700,    // 파문이 퍼지고 가라앉기까지의 시간 — 모래는 서두르지 않는다
+    PRESS_DRAG: 2.2,   // 누른 채 끌 때 딸려오는 힘의 배수
+    STIR: 3.5          // 누른 채 있을 때 알갱이가 휘저어지는(섞이는) 세기
   };
 
-  /* 문양 4종과 주제 키워드 (Adinkra) */
+  /* 문양 4종과 주제 키워드 (Adinkra) — 첫 접점에서 국문·영문이 함께 말한다 */
   var MOTIFS = [
-    { key: 'heritage', label: 'Cultural Heritage',     src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
-    { key: 'media',    label: 'Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
-    { key: 'xr',       label: 'XR',                    src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
-    { key: 'data',     label: 'Data Analyzing',        src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
+    { key: 'heritage', label: '문화유산 — Cultural Heritage',            src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
+    { key: 'media',    label: '인터랙티브 미디어 아트 — Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
+    { key: 'xr',       label: 'XR',                                      src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
+    { key: 'data',     label: '데이터 분석 — Data Analyzing',             src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
   ];
-  var SCALES = [1.0, 0.96, 1.04, 0.94];   // 문양마다 살짝 다른 크기 (유기적 배치감)
+  /* 네 문양은 같은 크기 — 위계 없이 대등하게 */
+  var SCALES = [1.0, 1.0, 1.0, 1.0];
+  var MAX_SCALE = Math.max.apply(null, SCALES);
 
   var canvas = null, gl = null, prog = null, quad = null, texHeight = null;
   var uni = {};
@@ -41,7 +47,11 @@
 
   var dpr = 1;
   var mouseX = -1e4, mouseY = -1e4;
+  var burstX = -1e4, burstY = -1e4, burstStart = -1e9;   // 클릭/터치 파문
+  var pressAmp = 0, pressTarget = 0, churn = 0;          // 누른 채 드래그 — 교반 상태
   var smX = -1e4, smY = -1e4;
+  var lblX = -1e4, lblY = -1e4;    // 키워드 라벨 위치 (커서보다 살짝 무겁게 따라온다)
+  var idleStart = 0;               // 배회 빛의 시작 시각 — 첫 문양 위에서 출발
   var velX = 0, velY = 0;          // 부드럽게 완화된 커서 속도 (CSS px/frame)
   var prevSmX = -1e4, prevSmY = -1e4;
   var amp = 0;
@@ -66,6 +76,12 @@
     'uniform float uGrain;',    // 입자 한 알의 크기 (device px)
     'uniform float uScatter;',  // 가장자리 산란 최대 거리 (입자 크기 배수)
     'uniform vec2 uVel;',       // 커서 속도 (device px/frame) — 입자가 딸려오는 흐름
+    'uniform vec3 uBurst;',     // 클릭 파문 (x, y, 최대 반경 — device px)
+    'uniform float uBurstT;',   // 파문 진행도 0..1 (1 = 없음)
+    'uniform float uPress;',    // 누름 상태 0..1 (부드럽게 완화됨)
+    'uniform float uChurn;',    // 누른 동안 누적되는 교반 위상
+    'uniform float uStir;',     // 교반 세기 (FX.STIR)
+    'uniform float uPressDrag;',// 누른 채 끌 때 딸려오는 배수 (FX.PRESS_DRAG)
     '',
     'float H(vec2 uv){ return texture2D(uHeightT, uv).r; }',
     'float hash(vec2 q){ return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }',
@@ -91,12 +107,35 @@
     '  float ang = r1 * 6.2831853 + uTime * (0.22 + 0.8 * r2);',
     '  float rad = G * (0.5 + (uScatter - 0.5) * r2 * r2);',       // 대부분은 가까이, 일부만 멀리
     '',
+    // ---- 누른 채 드래그: 손가락 아래 모래가 휘저어진다 ----
+    // 알갱이마다 도는 속도가 달라 이웃한 입자들이 서로 자리를 바꾸며 섞인다.
+    // 위상(ang)은 press가 아니라 uChurn 자체로 유지된다 — 저은 모래는 되감기지 않고,
+    // JS 쪽에서 uChurn이 천천히 잦아들며 제자리로 「가라앉는다」
+    '  float prox = exp(-d / (uRadius * 0.35));',
+    '  float stir = uPress * prox;',
+    '  ang += uChurn * (0.6 + 1.4 * r2) * prox;',
+    '  rad *= 1.0 + uStir * stir * (0.4 + 0.6 * r3);',
+    '',
     // ---- 커서 드래그: 커서가 움직이면 근처 입자들이 이동 방향으로 딸려온다 ----
     // 셀마다 딸려오는 양이 달라 문양의 입자들이 흐름을 따라 늘어지고 서로 섞인다
+    // 누른 채 끌면 훨씬 강하게 — 모래가 손에 붙어 끌려오는 느낌
     '  float drag = exp(-d / (uRadius * 0.55));',
-    '  vec2 dragOff = -uVel * drag * (0.35 + 0.95 * r2);',
+    '  vec2 dragOff = -uVel * drag * (0.35 + 0.95 * r2) * (1.0 + uPressDrag * uPress);',
     '',
-    '  vec2 p2 = p + vec2(cos(ang), sin(ang)) * rad + dragOff;',
+    // ---- 클릭 파문: 손이 닿은 곳에서 모래알이 낮게 밀렸다 느리게 가라앉는다 ----
+    // 감속하는 파면(wavefront)이 천천히 번지고, 알갱이마다 닿는 시점이 어긋나
+    // 가장자리가 너덜하다. 대부분은 조금 밀리고 몇 알만 멀리 튄다 (모래의 분포)
+    '  float bd = distance(p, uBurst.xy);',
+    '  float bw = uBurst.z * (1.0 - (1.0 - uBurstT) * (1.0 - uBurstT));',
+    // ~100ms 어택 — 손이 모래에 「꽂히는」 순간이 있고 나서 퍼진다 (0에서 팝 금지)
+    '  float env = pow(1.0 - uBurstT, 0.65) * smoothstep(0.0, 0.06, uBurstT);',
+    '  float ragged = (r1 - 0.5) * uBurst.z * 0.12;',             // 알갱이마다 파면이 닿는 시점이 다르다
+    '  float bk = exp(-abs(bd - bw + ragged) / (uBurst.z * 0.22)) * env;',
+    '  vec2 bdir = bd > 0.5 ? (p - uBurst.xy) / bd : vec2(0.0);',
+    '  vec2 burstOff = -bdir * bk * uBurst.z * (0.05 + 0.28 * r2 * r2)',   // 대부분 조금, 몇 알만 멀리
+    '                  + vec2(-bdir.y, bdir.x) * bk * uBurst.z * 0.08 * (r3 - 0.5);',
+    '',
+    '  vec2 p2 = p + vec2(cos(ang), sin(ang)) * rad + dragOff + burstOff;',
     '  vec2 uv2 = p2 / uRes;',
     '',
     // ---- 석고 부조 라이팅 (산란된 위치 기준) ----
@@ -182,7 +221,7 @@
     }
 
     // 목표 크기(FX.MOTIF_SIZE)에서 시작해, 서로/가장자리와 충돌하지 않는 최대 크기로 자동 축소
-    var maxScale = 1.04;                   // SCALES의 최댓값
+    var maxScale = MAX_SCALE;
     var cap = minSide * FX.MOTIF_SIZE;
     var edgeTop = topSafe - 46;            // 문양 위쪽은 헤더 라인 살짝 아래까지 허용
     var edgeLeft = leftSafe ? leftSafe - 40 : pad;   // 내비 축은 문양의 살짝 걸침만 허용
@@ -267,6 +306,7 @@
     if (show) {
       if (labelEl.textContent !== MOTIFS[best].label) {
         labelEl.textContent = MOTIFS[best].label;
+        labelEl.classList.toggle('ko', /[가-힣]/.test(MOTIFS[best].label));
       }
       // 커서 끝을 그대로 따라다닌다 (화면 밖으로 나가지 않게만 보정)
       var w = canvas.clientWidth, h = canvas.clientHeight;
@@ -326,7 +366,7 @@
         var loc = gl.getAttribLocation(prog, 'aPos');
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel', 'uTime', 'uGrain', 'uScatter', 'uVel'].forEach(function (n) {
+        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel', 'uTime', 'uGrain', 'uScatter', 'uVel', 'uBurst', 'uBurstT', 'uPress', 'uChurn', 'uStir', 'uPressDrag'].forEach(function (n) {
           uni[n] = gl.getUniformLocation(prog, n);
         });
         texHeight = gl.createTexture();
@@ -369,6 +409,14 @@
     gl.uniform1f(uni.uGrain, Math.max(2, FX.GRAIN * dpr));
     gl.uniform1f(uni.uScatter, FX.SCATTER);
     gl.uniform2f(uni.uVel, velX * dpr * FX.DRAG, velY * dpr * FX.DRAG);
+    var bt = Math.min(1, Math.max(0, (performance.now() - burstStart) / FX.BURST_MS));
+    gl.uniform3f(uni.uBurst, burstX * dpr, burstY * dpr,
+      Math.min(canvas.width, canvas.height) * FX.BURST_R);
+    gl.uniform1f(uni.uBurstT, reduceMotion ? 1 : bt);
+    gl.uniform1f(uni.uPress, reduceMotion ? 0 : pressAmp);
+    gl.uniform1f(uni.uChurn, churn);
+    gl.uniform1f(uni.uStir, FX.STIR);
+    gl.uniform1f(uni.uPressDrag, FX.PRESS_DRAG);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     updateLabel(cssX, cssY, ampV);
     return true;
@@ -381,10 +429,16 @@
     var idle = (now - lastPointer) > 3500;
     var tx = mouseX, ty = mouseY;
     if (idle && !reduceMotion) {
-      // 포인터가 없을 때: 가상의 빛이 문양들 위를 천천히 배회
+      // 포인터가 없을 때: 가상의 빛이 첫 문양 위에서 출발해 천천히 배회한다
+      // (도착이지 부재가 아니다 — 첫 방문자가 빈 흰 벽만 보지 않도록)
+      if (!idleStart) idleStart = now;
+      var ph = now - idleStart;
       var w = canvas.clientWidth, h = canvas.clientHeight;
-      tx = w * (0.5 + 0.34 * Math.sin(now * 0.00019));
-      ty = h * (0.48 + 0.3 * Math.sin(now * 0.00013 + 1.7));
+      var a0 = placed.length ? placed[0] : { x: w * 0.5, y: h * 0.48 };
+      tx = Math.max(20, Math.min(w - 20, a0.x + w * 0.30 * Math.sin(ph * 0.00019)));
+      ty = Math.max(96, Math.min(h - 20, a0.y + h * 0.26 * Math.sin(ph * 0.00013 + 1.7)));
+    } else {
+      idleStart = 0;
     }
     var ampTarget = 1;
     if (tx <= -9000) ampTarget = 0;
@@ -407,9 +461,23 @@
     } else { velX = 0; velY = 0; }
     prevSmX = smX; prevSmY = smY;
 
+    // 누름 상태 완화 + 교반 위상 누적 — 끌수록 더 섞이고,
+    // 손을 떼면 위상이 천천히 잦아든다 (섞임을 되감지 않고 가라앉는다)
+    pressAmp += (pressTarget - pressAmp) * 0.12;
+    if (pressTarget > 0 && !reduceMotion) {
+      churn += (0.035 + 0.012 * Math.min(30, Math.hypot(velX, velY))) * pressAmp;
+    } else {
+      churn *= 0.985;
+    }
+
     renderAt(smX, smY, amp, reduceMotion ? 0 : now * 0.001);
-    // 부조는 관성 있는 위치(smX,smY)를 쓰지만, 키워드 라벨은 커서 끝(tx,ty)을 그대로 따라간다
-    if (tx > -9000) updateLabel(tx, ty, amp);
+    // 키워드 라벨도 질량을 가진다 — 커서보다 살짝 늦게(0.22) 따라와 같은 세계의 물건이 된다
+    if (tx > -9000) {
+      if (lblX < -9000) { lblX = tx; lblY = ty; }
+      lblX += (tx - lblX) * 0.22;
+      lblY += (ty - lblY) * 0.22;
+      updateLabel(lblX, lblY, amp);
+    }
   }
 
   function onMove(e) {
@@ -422,6 +490,16 @@
       lastPointer = performance.now();
     }
   }
+  function onDown(e) {
+    burstX = e.clientX; burstY = e.clientY;
+    burstStart = performance.now();
+    pressTarget = 1;
+    if (e.pointerType === 'touch') {
+      mouseX = e.clientX; mouseY = e.clientY;
+      lastPointer = burstStart;
+    }
+  }
+  function onUp() { pressTarget = 0; }
 
   function start(cnv) {
     if (failed) return;
@@ -431,6 +509,9 @@
     if (active) return;
     active = true;
     window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
     window.addEventListener('touchstart', onTouch, { passive: true });
     window.addEventListener('touchmove', onTouch, { passive: true });
     window.addEventListener('resize', resize);
@@ -442,6 +523,10 @@
     if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
     if (labelEl) labelEl.classList.remove('on');
     window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerdown', onDown);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    pressTarget = 0;
     window.removeEventListener('touchstart', onTouch);
     window.removeEventListener('touchmove', onTouch);
     window.removeEventListener('resize', resize);
