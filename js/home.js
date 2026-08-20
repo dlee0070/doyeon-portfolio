@@ -19,7 +19,9 @@
     SCATTER: 3.2,      // 가장자리 입자가 흩어지는 최대 거리 (입자 크기 배수)
     DRAG: 0.55,        // 마우스를 움직일 때 입자가 딸려오는 정도 (0 = 없음)
     BURST_R: 0.26,     // 클릭 파문의 최대 반경 (화면 짧은 변 대비 비율)
-    BURST_MS: 1700     // 파문이 퍼지고 가라앉기까지의 시간 — 모래는 서두르지 않는다
+    BURST_MS: 1700,    // 파문이 퍼지고 가라앉기까지의 시간 — 모래는 서두르지 않는다
+    PRESS_DRAG: 2.2,   // 누른 채 끌 때 딸려오는 힘의 배수
+    STIR: 2.6          // 누른 채 있을 때 알갱이가 휘저어지는(섞이는) 세기
   };
 
   /* 문양 4종과 주제 키워드 (Adinkra) */
@@ -44,6 +46,7 @@
   var dpr = 1;
   var mouseX = -1e4, mouseY = -1e4;
   var burstX = -1e4, burstY = -1e4, burstStart = -1e9;   // 클릭/터치 파문
+  var pressAmp = 0, pressTarget = 0, churn = 0;          // 누른 채 드래그 — 교반 상태
   var smX = -1e4, smY = -1e4;
   var velX = 0, velY = 0;          // 부드럽게 완화된 커서 속도 (CSS px/frame)
   var prevSmX = -1e4, prevSmY = -1e4;
@@ -71,6 +74,10 @@
     'uniform vec2 uVel;',       // 커서 속도 (device px/frame) — 입자가 딸려오는 흐름
     'uniform vec3 uBurst;',     // 클릭 파문 (x, y, 최대 반경 — device px)
     'uniform float uBurstT;',   // 파문 진행도 0..1 (1 = 없음)
+    'uniform float uPress;',    // 누름 상태 0..1 (부드럽게 완화됨)
+    'uniform float uChurn;',    // 누른 동안 누적되는 교반 위상
+    'uniform float uStir;',     // 교반 세기 (FX.STIR)
+    'uniform float uPressDrag;',// 누른 채 끌 때 딸려오는 배수 (FX.PRESS_DRAG)
     '',
     'float H(vec2 uv){ return texture2D(uHeightT, uv).r; }',
     'float hash(vec2 q){ return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }',
@@ -96,10 +103,18 @@
     '  float ang = r1 * 6.2831853 + uTime * (0.22 + 0.8 * r2);',
     '  float rad = G * (0.5 + (uScatter - 0.5) * r2 * r2);',       // 대부분은 가까이, 일부만 멀리
     '',
+    // ---- 누른 채 드래그: 손가락 아래 모래가 휘저어진다 ----
+    // 알갱이마다 도는 속도가 달라 이웃한 입자들이 서로 자리를 바꾸며 섞이고,
+    // 손을 떼면 교반이 멎으며 제자리 궤도로 천천히 돌아온다
+    '  float stir = uPress * exp(-d / (uRadius * 0.35));',
+    '  ang += uChurn * (0.6 + 1.4 * r2) * stir;',
+    '  rad *= 1.0 + uStir * stir * (0.4 + 0.6 * r3);',
+    '',
     // ---- 커서 드래그: 커서가 움직이면 근처 입자들이 이동 방향으로 딸려온다 ----
     // 셀마다 딸려오는 양이 달라 문양의 입자들이 흐름을 따라 늘어지고 서로 섞인다
+    // 누른 채 끌면 훨씬 강하게 — 모래가 손에 붙어 끌려오는 느낌
     '  float drag = exp(-d / (uRadius * 0.55));',
-    '  vec2 dragOff = -uVel * drag * (0.35 + 0.95 * r2);',
+    '  vec2 dragOff = -uVel * drag * (0.35 + 0.95 * r2) * (1.0 + uPressDrag * uPress);',
     '',
     // ---- 클릭 파문: 손이 닿은 곳에서 모래알이 낮게 밀렸다 느리게 가라앉는다 ----
     // 감속하는 파면(wavefront)이 천천히 번지고, 알갱이마다 닿는 시점이 어긋나
@@ -343,7 +358,7 @@
         var loc = gl.getAttribLocation(prog, 'aPos');
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel', 'uTime', 'uGrain', 'uScatter', 'uVel', 'uBurst', 'uBurstT'].forEach(function (n) {
+        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel', 'uTime', 'uGrain', 'uScatter', 'uVel', 'uBurst', 'uBurstT', 'uPress', 'uChurn', 'uStir', 'uPressDrag'].forEach(function (n) {
           uni[n] = gl.getUniformLocation(prog, n);
         });
         texHeight = gl.createTexture();
@@ -390,6 +405,10 @@
     gl.uniform3f(uni.uBurst, burstX * dpr, burstY * dpr,
       Math.min(canvas.width, canvas.height) * FX.BURST_R);
     gl.uniform1f(uni.uBurstT, reduceMotion ? 1 : bt);
+    gl.uniform1f(uni.uPress, reduceMotion ? 0 : pressAmp);
+    gl.uniform1f(uni.uChurn, churn);
+    gl.uniform1f(uni.uStir, FX.STIR);
+    gl.uniform1f(uni.uPressDrag, FX.PRESS_DRAG);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     updateLabel(cssX, cssY, ampV);
     return true;
@@ -428,6 +447,12 @@
     } else { velX = 0; velY = 0; }
     prevSmX = smX; prevSmY = smY;
 
+    // 누름 상태 완화 + 교반 위상 누적 — 끌수록 더 섞이고, 손을 떼면 서서히 멎는다
+    pressAmp += (pressTarget - pressAmp) * 0.12;
+    if (pressAmp > 0.01 && !reduceMotion) {
+      churn += (0.035 + 0.012 * Math.min(30, Math.hypot(velX, velY))) * pressAmp;
+    }
+
     renderAt(smX, smY, amp, reduceMotion ? 0 : now * 0.001);
     // 부조는 관성 있는 위치(smX,smY)를 쓰지만, 키워드 라벨은 커서 끝(tx,ty)을 그대로 따라간다
     if (tx > -9000) updateLabel(tx, ty, amp);
@@ -446,11 +471,13 @@
   function onDown(e) {
     burstX = e.clientX; burstY = e.clientY;
     burstStart = performance.now();
+    pressTarget = 1;
     if (e.pointerType === 'touch') {
       mouseX = e.clientX; mouseY = e.clientY;
       lastPointer = burstStart;
     }
   }
+  function onUp() { pressTarget = 0; }
 
   function start(cnv) {
     if (failed) return;
@@ -461,6 +488,8 @@
     active = true;
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
     window.addEventListener('touchstart', onTouch, { passive: true });
     window.addEventListener('touchmove', onTouch, { passive: true });
     window.addEventListener('resize', resize);
@@ -473,6 +502,9 @@
     if (labelEl) labelEl.classList.remove('on');
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerdown', onDown);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    pressTarget = 0;
     window.removeEventListener('touchstart', onTouch);
     window.removeEventListener('touchmove', onTouch);
     window.removeEventListener('resize', resize);
