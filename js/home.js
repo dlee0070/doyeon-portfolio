@@ -17,7 +17,9 @@
     LABEL_RANGE: 0.65, // 키워드가 뜨는 커서 거리 (문양 크기 대비 비율)
     GRAIN: 0.5,        // 입자 한 알의 크기 (CSS px) — 화면의 모든 것이 이 알갱이로 그려진다
     SCATTER: 3.2,      // 가장자리 입자가 흩어지는 최대 거리 (입자 크기 배수)
-    DRAG: 0.55         // 마우스를 움직일 때 입자가 딸려오는 정도 (0 = 없음)
+    DRAG: 0.55,        // 마우스를 움직일 때 입자가 딸려오는 정도 (0 = 없음)
+    BURST_R: 0.30,     // 클릭 파문의 최대 반경 (화면 짧은 변 대비 비율)
+    BURST_MS: 900      // 파문이 퍼지고 가라앉기까지의 시간
   };
 
   /* 문양 4종과 주제 키워드 (Adinkra) */
@@ -41,6 +43,7 @@
 
   var dpr = 1;
   var mouseX = -1e4, mouseY = -1e4;
+  var burstX = -1e4, burstY = -1e4, burstStart = -1e9;   // 클릭/터치 파문
   var smX = -1e4, smY = -1e4;
   var velX = 0, velY = 0;          // 부드럽게 완화된 커서 속도 (CSS px/frame)
   var prevSmX = -1e4, prevSmY = -1e4;
@@ -66,6 +69,8 @@
     'uniform float uGrain;',    // 입자 한 알의 크기 (device px)
     'uniform float uScatter;',  // 가장자리 산란 최대 거리 (입자 크기 배수)
     'uniform vec2 uVel;',       // 커서 속도 (device px/frame) — 입자가 딸려오는 흐름
+    'uniform vec3 uBurst;',     // 클릭 파문 (x, y, 최대 반경 — device px)
+    'uniform float uBurstT;',   // 파문 진행도 0..1 (1 = 없음)
     '',
     'float H(vec2 uv){ return texture2D(uHeightT, uv).r; }',
     'float hash(vec2 q){ return fract(sin(dot(q, vec2(127.1, 311.7))) * 43758.5453); }',
@@ -96,7 +101,16 @@
     '  float drag = exp(-d / (uRadius * 0.55));',
     '  vec2 dragOff = -uVel * drag * (0.35 + 0.95 * r2);',
     '',
-    '  vec2 p2 = p + vec2(cos(ang), sin(ang)) * rad + dragOff;',
+    // ---- 클릭 파문: 손이 닿은 곳에서 모래알이 고리 모양으로 퍼졌다 가라앉는다 ----
+    // 감속하는 파면(wavefront) 근처의 입자만 바깥으로 밀리고, 지나간 자리는 다시 고요해진다
+    '  float bd = distance(p, uBurst.xy);',
+    '  float bw = uBurst.z * (1.0 - (1.0 - uBurstT) * (1.0 - uBurstT));',
+    '  float bk = exp(-abs(bd - bw) / (uBurst.z * 0.16)) * (1.0 - uBurstT);',
+    '  vec2 bdir = bd > 0.5 ? (p - uBurst.xy) / bd : vec2(0.0);',
+    '  vec2 burstOff = -bdir * bk * uBurst.z * (0.10 + 0.30 * r2)',   // 바깥으로 보이도록 안쪽에서 샘플
+    '                  + vec2(-bdir.y, bdir.x) * bk * uBurst.z * 0.12 * (r3 - 0.5);',   // 알갱이마다 비끼는 방향
+    '',
+    '  vec2 p2 = p + vec2(cos(ang), sin(ang)) * rad + dragOff + burstOff;',
     '  vec2 uv2 = p2 / uRes;',
     '',
     // ---- 석고 부조 라이팅 (산란된 위치 기준) ----
@@ -326,7 +340,7 @@
         var loc = gl.getAttribLocation(prog, 'aPos');
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel', 'uTime', 'uGrain', 'uScatter', 'uVel'].forEach(function (n) {
+        ['uHeightT', 'uRes', 'uMouse', 'uAmp', 'uRadius', 'uFeather', 'uStrength', 'uTexel', 'uTime', 'uGrain', 'uScatter', 'uVel', 'uBurst', 'uBurstT'].forEach(function (n) {
           uni[n] = gl.getUniformLocation(prog, n);
         });
         texHeight = gl.createTexture();
@@ -369,6 +383,10 @@
     gl.uniform1f(uni.uGrain, Math.max(2, FX.GRAIN * dpr));
     gl.uniform1f(uni.uScatter, FX.SCATTER);
     gl.uniform2f(uni.uVel, velX * dpr * FX.DRAG, velY * dpr * FX.DRAG);
+    var bt = Math.min(1, Math.max(0, (performance.now() - burstStart) / FX.BURST_MS));
+    gl.uniform3f(uni.uBurst, burstX * dpr, burstY * dpr,
+      Math.min(canvas.width, canvas.height) * FX.BURST_R);
+    gl.uniform1f(uni.uBurstT, reduceMotion ? 1 : bt);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
     updateLabel(cssX, cssY, ampV);
     return true;
@@ -422,6 +440,14 @@
       lastPointer = performance.now();
     }
   }
+  function onDown(e) {
+    burstX = e.clientX; burstY = e.clientY;
+    burstStart = performance.now();
+    if (e.pointerType === 'touch') {
+      mouseX = e.clientX; mouseY = e.clientY;
+      lastPointer = burstStart;
+    }
+  }
 
   function start(cnv) {
     if (failed) return;
@@ -431,6 +457,7 @@
     if (active) return;
     active = true;
     window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onDown);
     window.addEventListener('touchstart', onTouch, { passive: true });
     window.addEventListener('touchmove', onTouch, { passive: true });
     window.addEventListener('resize', resize);
@@ -442,6 +469,7 @@
     if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
     if (labelEl) labelEl.classList.remove('on');
     window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerdown', onDown);
     window.removeEventListener('touchstart', onTouch);
     window.removeEventListener('touchmove', onTouch);
     window.removeEventListener('resize', resize);
