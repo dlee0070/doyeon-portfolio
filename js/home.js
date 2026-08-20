@@ -18,8 +18,8 @@
     GRAIN: 0.5,        // 입자 한 알의 크기 (CSS px) — 화면의 모든 것이 이 알갱이로 그려진다
     SCATTER: 3.2,      // 가장자리 입자가 흩어지는 최대 거리 (입자 크기 배수)
     DRAG: 0.55,        // 마우스를 움직일 때 입자가 딸려오는 정도 (0 = 없음)
-    BURST_R: 0.30,     // 클릭 파문의 최대 반경 (화면 짧은 변 대비 비율)
-    BURST_MS: 900      // 파문이 퍼지고 가라앉기까지의 시간
+    BURST_R: 0.26,     // 클릭 파문의 최대 반경 (화면 짧은 변 대비 비율)
+    BURST_MS: 1700     // 파문이 퍼지고 가라앉기까지의 시간 — 모래는 서두르지 않는다
   };
 
   /* 문양 4종과 주제 키워드 (Adinkra) */
@@ -101,14 +101,17 @@
     '  float drag = exp(-d / (uRadius * 0.55));',
     '  vec2 dragOff = -uVel * drag * (0.35 + 0.95 * r2);',
     '',
-    // ---- 클릭 파문: 손이 닿은 곳에서 모래알이 고리 모양으로 퍼졌다 가라앉는다 ----
-    // 감속하는 파면(wavefront) 근처의 입자만 바깥으로 밀리고, 지나간 자리는 다시 고요해진다
+    // ---- 클릭 파문: 손이 닿은 곳에서 모래알이 낮게 밀렸다 느리게 가라앉는다 ----
+    // 감속하는 파면(wavefront)이 천천히 번지고, 알갱이마다 닿는 시점이 어긋나
+    // 가장자리가 너덜하다. 대부분은 조금 밀리고 몇 알만 멀리 튄다 (모래의 분포)
     '  float bd = distance(p, uBurst.xy);',
     '  float bw = uBurst.z * (1.0 - (1.0 - uBurstT) * (1.0 - uBurstT));',
-    '  float bk = exp(-abs(bd - bw) / (uBurst.z * 0.16)) * (1.0 - uBurstT);',
+    '  float env = pow(1.0 - uBurstT, 0.65);',                    // 느긋한 감쇠 — 오래 머물다 잦아든다
+    '  float ragged = (r1 - 0.5) * uBurst.z * 0.12;',             // 알갱이마다 파면이 닿는 시점이 다르다
+    '  float bk = exp(-abs(bd - bw + ragged) / (uBurst.z * 0.22)) * env;',
     '  vec2 bdir = bd > 0.5 ? (p - uBurst.xy) / bd : vec2(0.0);',
-    '  vec2 burstOff = -bdir * bk * uBurst.z * (0.10 + 0.30 * r2)',   // 바깥으로 보이도록 안쪽에서 샘플
-    '                  + vec2(-bdir.y, bdir.x) * bk * uBurst.z * 0.12 * (r3 - 0.5);',   // 알갱이마다 비끼는 방향
+    '  vec2 burstOff = -bdir * bk * uBurst.z * (0.05 + 0.28 * r2 * r2)',   // 대부분 조금, 몇 알만 멀리
+    '                  + vec2(-bdir.y, bdir.x) * bk * uBurst.z * 0.08 * (r3 - 0.5);',
     '',
     '  vec2 p2 = p + vec2(cos(ang), sin(ang)) * rad + dragOff + burstOff;',
     '  vec2 uv2 = p2 / uRes;',
