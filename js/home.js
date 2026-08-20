@@ -24,12 +24,12 @@
     STIR: 3.5          // 누른 채 있을 때 알갱이가 휘저어지는(섞이는) 세기
   };
 
-  /* 문양 4종과 주제 키워드 (Adinkra) — 첫 접점에서 국문·영문이 함께 말한다 */
+  /* 문양 4종과 주제 키워드 (Adinkra) */
   var MOTIFS = [
-    { key: 'heritage', label: '문화유산 — Cultural Heritage',            src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
-    { key: 'media',    label: '인터랙티브 미디어 아트 — Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
-    { key: 'xr',       label: 'XR',                                      src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
-    { key: 'data',     label: '데이터 분석 — Data Analyzing',             src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
+    { key: 'heritage', label: 'Cultural Heritage',     src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
+    { key: 'media',    label: 'Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
+    { key: 'xr',       label: 'XR',                    src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
+    { key: 'data',     label: 'Data Analyzing',        src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
   ];
   /* 네 문양은 같은 크기 — 위계 없이 대등하게 */
   var SCALES = [1.0, 1.0, 1.0, 1.0];
