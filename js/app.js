@@ -459,7 +459,7 @@
       } else if (t === 'model') {
         var box = el('div', 'viewer3d');
         wrap.appendChild(box);
-        wrap.appendChild(el('p', 'viewer3d-hint', '드래그로 회전 · 휠로 확대 — drag to rotate'));
+        wrap.appendChild(el('p', 'viewer3d-hint', '드래그로 회전 · 휠로 확대'));
         mountModel(box, m.src);
       } else if (t === 'embed') {
         var ifr = document.createElement('iframe');
@@ -562,9 +562,26 @@
 
   /* ---------- router ---------- */
 
+  var leaveTimer = null;
   function setSection(name) {
+    var prev = lastSection;
+    /* 떠나는 뷰는 위로 사라진 뒤 숨긴다 — 들어올 땐 아래에서, 나갈 땐 위로 (홈은 배경이라 즉시) */
+    if (prev && prev !== name && prev !== 'home' && stage[prev] && !stage[prev].hidden) {
+      var pv = stage[prev];
+      pv.classList.add('leaving');
+      if (leaveTimer) clearTimeout(leaveTimer);
+      leaveTimer = setTimeout(function () {
+        pv.classList.remove('leaving');
+        if (pv !== stage[lastSection]) pv.hidden = true;   // 그새 다시 활성됐다면 그대로 둔다
+      }, 220);
+    }
     SECTIONS.forEach(function (s) {
-      stage[s].hidden = (s !== name);
+      if (s === name) {
+        stage[s].classList.remove('leaving');
+        stage[s].hidden = false;
+      } else if (s !== prev || prev === 'home' || prev === name) {
+        stage[s].hidden = true;
+      }
     });
     navLinks.forEach(function (a) {
       var on = a.getAttribute('data-view') === name;

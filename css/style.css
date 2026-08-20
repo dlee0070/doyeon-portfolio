@@ -15,7 +15,9 @@
   --black: #000;
   --white: #fff;
   --hairline: 1px solid var(--black);
-  --header-h: 80px;          /* 40px 모듈 × 2 — nav 200 = 5M, pad 40 = 1M */
+  --header-h: 80px;          /* 40px 모듈 × 2 — nav 200 = 5M, pad 40 = 1M
+                                보조 단위 14 (= 0.35M): 14→28→56 배열, 트랙 140 = 10×14.
+                                140:28 = 200:40 — 매크로 그리드의 0.7배 에코 */
   --nav-w: 200px;
   --pad-x: 40px;
   --ease: cubic-bezier(0.22, 0.7, 0.2, 1);
@@ -90,7 +92,7 @@ img, video { display: block; }
   padding: 40px var(--pad-x);
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
   z-index: 20;
 }
 
@@ -103,7 +105,7 @@ img, video { display: block; }
   text-transform: uppercase;
   line-height: 1;
   opacity: var(--muted);
-  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
+  transition: opacity 0.25s var(--ease), transform 0.4s var(--ease);
 }
 
 .side-nav a:hover,
@@ -111,18 +113,25 @@ img, video { display: block; }
 
 .side-nav a.active {
   opacity: 1;
-  transform: translateX(24px);
+  transform: translateX(28px);
 }
 
-.side-nav a.active::before {
+/* 활성 선 — 글자가 밀리는 동안 뒤에서 그어진다. 가장자리는 석고 입자로 부서진다 */
+.side-nav a::before {
   content: '';
   position: absolute;
-  left: -24px;
+  left: -28px;
   top: 50%;
-  width: 16px;
+  width: 14px;
   height: 1px;
   background: var(--black);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s var(--ease);
+  filter: url(#grainEdge);
 }
+
+.side-nav a.active::before { transform: scaleX(1); }
 
 /* ---------- stage / views ---------- */
 
@@ -148,6 +157,14 @@ img, video { display: block; }
 }
 @keyframes view-in {
   from { opacity: 0; transform: translateY(18px); }
+}
+
+/* 뷰 퇴장 — 들어올 땐 아래에서, 나갈 땐 위로. 하나의 수직 흐름 */
+.view.leaving {
+  animation: view-out 0.2s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+}
+@keyframes view-out {
+  to { opacity: 0; transform: translateY(-10px); }
 }
 
 /* 네이브 기둥선 — 콘텐츠 페이지의 수직 축. 헤더의 수평선과 십자 구도를 이룬다 */
@@ -178,7 +195,7 @@ img, video { display: block; }
   opacity: var(--muted);
 }
 
-/* 아치가 라벨의 폭을 받친다 — 11px에서는 곡률이 죽는다 */
+/* 아치가 라벨의 폭을 받친다 — 가장자리는 홈의 석고 입자로 부서진다 (재질이 네 방을 묶는다) */
 .view-label::before {
   content: '';
   display: block;
@@ -188,6 +205,7 @@ img, video { display: block; }
   border: 1px solid var(--black);
   border-bottom: none;
   border-radius: 999px 999px 0 0;
+  filter: url(#grainEdge);
 }
 
 /* ---------- home (석고 부조 인터랙티브) ---------- */
@@ -226,6 +244,7 @@ body.on-home .site-header { background: transparent; }
   filter: url(#grainEdge);
 }
 .home-label.on { opacity: 0.78; }
+.home-label.ko { letter-spacing: 0.03em; }   /* 국문 병기 라벨은 라틴 자간을 벗는다 */
 
 /* ---------- works strip ---------- */
 
@@ -267,15 +286,17 @@ body.on-home .site-header { background: transparent; }
   height: min(56vh, 600px);
   animation: strip-in 0.85s var(--ease) backwards;
   animation-delay: calc(min(var(--i) * 80ms, 480ms));
-  transition: transform 0.45s var(--ease);
+  transition: transform 0.4s var(--ease);
 }
 
 /* 부조가 떠오르듯 — hover 시 작품이 벽에서 살짝 들린다 */
 .strip-item:hover { transform: translateY(-8px); }
 
-/* 갤러리 벽의 세로 리듬 — 걸이줄을 축으로 ±3vh 대칭으로 걸린다 */
-.strip-item:nth-child(even) { margin-top: 6vh; }
-.strip-item:nth-child(odd) { margin-bottom: 6vh; }
+/* 갤러리 벽의 세로 리듬 — 톱니가 아니라 숨쉬는 걸이. 4주기로 눈높이가 오르내린다 */
+.strip-item:nth-child(4n+1) { margin-bottom: 6vh; }
+.strip-item:nth-child(4n+2) { margin-top: 8vh; }
+.strip-item:nth-child(4n+3) { margin-bottom: 2vh; }
+.strip-item:nth-child(4n)   { margin-top: 4vh; }
 
 /* hover 프리뷰(영상 하이라이트 / 3D 뷰어) — 대표이미지 위에 겹쳐 두고 hover 시에만 페이드인 */
 .strip-item .strip-preview {
@@ -285,7 +306,7 @@ body.on-home .site-header { background: transparent; }
   height: 100%;
   object-fit: cover;
   opacity: 0;
-  transition: opacity 0.3s var(--ease);
+  transition: opacity 0.4s var(--ease);   /* 들림(0.4s)과 같은 박자로 드러난다 */
   pointer-events: none;
 }
 
@@ -373,7 +394,7 @@ body.on-home .site-header { background: transparent; }
   display: block;
   width: min(480px, 72vw);
   height: auto;
-  margin: 48px 0 0;
+  margin: 56px 0 0;
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -388,7 +409,7 @@ body.on-home .site-header { background: transparent; }
   padding: 20px 0;
   border-bottom: var(--hairline);
   cursor: pointer;
-  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+  transition: opacity 0.3s var(--ease), transform 0.4s var(--ease);
 }
 .study-row:first-child { border-top: var(--hairline); }
 /* hover — 물러나지 않고 반 걸음 다가온다. 연도가 함께 깨어난다 */
@@ -399,7 +420,7 @@ body.on-home .site-header { background: transparent; }
 
 .study-year {
   flex: none;
-  width: 110px;   /* contact 라벨 열과 같은 수직선에서 두 번째 열이 시작된다 */
+  width: 112px;   /* 8×14. +28 gap = 140 — 두 번째 열이 진행 트랙의 척도에서 시작된다 */
   font-size: 12px;
   letter-spacing: var(--ls-data);
   opacity: var(--muted);
@@ -423,10 +444,10 @@ body.on-home .site-header { background: transparent; }
 .about-inner { max-width: 640px; }
 
 .about-photo {
-  max-width: 340px;
+  max-width: 320px;   /* 8M — 아치 반경 160 = 4M */
   width: 100%;
   height: auto;
-  margin: 12px 0 48px 12px;
+  margin: 10px 0 56px 10px;
   border-radius: 999px 999px 0 0;   /* 로마네스크 아치 — 초상은 벽감(niche) 안에 놓인다 */
   outline: 1px solid rgba(0, 0, 0, var(--line-soft));   /* 아키볼트 — 겹아치 한 겹이 벽감의 깊이를 만든다 */
   outline-offset: 10px;
@@ -452,7 +473,7 @@ body.on-home .site-header { background: transparent; }
 
 .contact-label {
   flex: none;
-  width: 110px;
+  width: 112px;
   font-size: 12px;
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
@@ -483,8 +504,11 @@ body.on-home .site-header { background: transparent; }
   transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
 }
 .detail-overlay.open { opacity: 1; transform: none; }
-/* 퇴장은 진입보다 반 박자 빠르게 */
-.detail-overlay:not(.open) { transition-duration: 0.3s; }
+/* 퇴장은 진입보다 반 박자 빠르게, 떠나는 것은 가속한다 */
+.detail-overlay:not(.open) {
+  transition-duration: 0.3s;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.7, 1);
+}
 .detail-overlay[hidden] { display: none; }
 
 .detail-head {
@@ -492,7 +516,7 @@ body.on-home .site-header { background: transparent; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 28px;
   height: var(--header-h);
   padding: 0 var(--pad-x);
   border-bottom: var(--hairline);
@@ -501,7 +525,7 @@ body.on-home .site-header { background: transparent; }
 .detail-title-wrap {
   display: flex;
   align-items: baseline;
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -540,20 +564,20 @@ body.on-home .site-header { background: transparent; }
 }
 
 .detail-media {
-  max-width: 980px;
+  max-width: 960px;   /* 24M — 본문 640과 2:3 */
   margin: 0 auto 16px;
 }
 
 .detail-media img,
 .detail-media video {
   max-width: 100%;
-  max-height: 82vh;
+  max-height: 80vh;
   width: auto;
   height: auto;
   margin: 0 auto;
 }
 
-.detail-media video { width: 100%; max-height: 82vh; background: var(--white); }
+.detail-media video { width: 100%; max-height: 80vh; background: var(--white); }
 
 .detail-media iframe {
   display: block;
@@ -572,7 +596,7 @@ body.on-home .site-header { background: transparent; }
 
 /* 캡션은 장식 없이 — 아치는 이름표(40x20)와 벽감, 두 스케일에서만 산다 */
 
-.detail-media + .detail-media { margin-top: 48px; }
+.detail-media + .detail-media { margin-top: 56px; }
 
 /* 3D viewer */
 .viewer3d {
@@ -588,8 +612,7 @@ body.on-home .site-header { background: transparent; }
 .viewer3d-hint {
   margin-top: 10px;
   font-size: 11px;
-  letter-spacing: 0;   /* 국문 포함 문장 */
-  text-transform: uppercase;
+  letter-spacing: 0;   /* 국문 문장 — 조용한 실무는 한 목소리로 */
   opacity: var(--muted);
   text-align: center;
 }
@@ -609,7 +632,7 @@ body.on-home .site-header { background: transparent; }
 
 .detail-desc {
   max-width: 640px;
-  margin: 72px auto 0;
+  margin: 80px auto 0;
   font-size: 15px;
   line-height: 1.9;
   white-space: pre-line;
@@ -642,6 +665,7 @@ body.on-home .site-header { background: transparent; }
   .view-studies > *,
   .view-about > *,
   .view-contact > * { animation: none; }
+  .view.leaving { animation: none; }
 }
 
 /* ---------- mobile ---------- */
@@ -654,8 +678,8 @@ body.on-home .site-header { background: transparent; }
     left: 0; right: 0;
     width: auto;
     flex-direction: row;
-    gap: 22px;
-    padding: 16px var(--pad-x);
+    gap: 20px;
+    padding: 14px var(--pad-x);
   }
 
   .side-nav a.active { transform: none; }
@@ -687,7 +711,7 @@ body.on-home .site-header { background: transparent; }
 
   .detail-title { font-size: 18px; letter-spacing: var(--ls-label); }
   .detail-body { padding: 32px var(--pad-x) 100px; }
-  .detail-desc { margin-top: 48px; }
+  .detail-desc { margin-top: 56px; }
   .viewer3d { height: 56vh; }
   .contact-label { width: 84px; }
 }

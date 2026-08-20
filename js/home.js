@@ -24,14 +24,16 @@
     STIR: 3.5          // 누른 채 있을 때 알갱이가 휘저어지는(섞이는) 세기
   };
 
-  /* 문양 4종과 주제 키워드 (Adinkra) */
+  /* 문양 4종과 주제 키워드 (Adinkra) — 첫 접점에서 국문·영문이 함께 말한다 */
   var MOTIFS = [
-    { key: 'heritage', label: 'Cultural Heritage',     src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
-    { key: 'media',    label: 'Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
-    { key: 'xr',       label: 'XR',                    src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
-    { key: 'data',     label: 'Data Analyzing',        src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
+    { key: 'heritage', label: '문화유산 — Cultural Heritage',            src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
+    { key: 'media',    label: '인터랙티브 미디어 아트 — Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
+    { key: 'xr',       label: 'XR',                                      src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
+    { key: 'data',     label: '데이터 분석 — Data Analyzing',             src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
   ];
-  var SCALES = [1.0, 0.96, 1.04, 0.94];   // 문양마다 살짝 다른 크기 (유기적 배치감)
+  /* 하나가 주도하고 셋이 받친다 — 균등 분할이 아니라 무게 있는 여백 */
+  var SCALES = [1.35, 0.75, 0.95, 0.65];
+  var MAX_SCALE = Math.max.apply(null, SCALES);
 
   var canvas = null, gl = null, prog = null, quad = null, texHeight = null;
   var uni = {};
@@ -48,6 +50,8 @@
   var burstX = -1e4, burstY = -1e4, burstStart = -1e9;   // 클릭/터치 파문
   var pressAmp = 0, pressTarget = 0, churn = 0;          // 누른 채 드래그 — 교반 상태
   var smX = -1e4, smY = -1e4;
+  var lblX = -1e4, lblY = -1e4;    // 키워드 라벨 위치 (커서보다 살짝 무겁게 따라온다)
+  var idleStart = 0;               // 배회 빛의 시작 시각 — 첫 문양 위에서 출발
   var velX = 0, velY = 0;          // 부드럽게 완화된 커서 속도 (CSS px/frame)
   var prevSmX = -1e4, prevSmY = -1e4;
   var amp = 0;
@@ -104,10 +108,12 @@
     '  float rad = G * (0.5 + (uScatter - 0.5) * r2 * r2);',       // 대부분은 가까이, 일부만 멀리
     '',
     // ---- 누른 채 드래그: 손가락 아래 모래가 휘저어진다 ----
-    // 알갱이마다 도는 속도가 달라 이웃한 입자들이 서로 자리를 바꾸며 섞이고,
-    // 손을 떼면 교반이 멎으며 제자리 궤도로 천천히 돌아온다
-    '  float stir = uPress * exp(-d / (uRadius * 0.35));',
-    '  ang += uChurn * (0.6 + 1.4 * r2) * stir;',
+    // 알갱이마다 도는 속도가 달라 이웃한 입자들이 서로 자리를 바꾸며 섞인다.
+    // 위상(ang)은 press가 아니라 uChurn 자체로 유지된다 — 저은 모래는 되감기지 않고,
+    // JS 쪽에서 uChurn이 천천히 잦아들며 제자리로 「가라앉는다」
+    '  float prox = exp(-d / (uRadius * 0.35));',
+    '  float stir = uPress * prox;',
+    '  ang += uChurn * (0.6 + 1.4 * r2) * prox;',
     '  rad *= 1.0 + uStir * stir * (0.4 + 0.6 * r3);',
     '',
     // ---- 커서 드래그: 커서가 움직이면 근처 입자들이 이동 방향으로 딸려온다 ----
@@ -121,7 +127,8 @@
     // 가장자리가 너덜하다. 대부분은 조금 밀리고 몇 알만 멀리 튄다 (모래의 분포)
     '  float bd = distance(p, uBurst.xy);',
     '  float bw = uBurst.z * (1.0 - (1.0 - uBurstT) * (1.0 - uBurstT));',
-    '  float env = pow(1.0 - uBurstT, 0.65);',                    // 느긋한 감쇠 — 오래 머물다 잦아든다
+    // ~100ms 어택 — 손이 모래에 「꽂히는」 순간이 있고 나서 퍼진다 (0에서 팝 금지)
+    '  float env = pow(1.0 - uBurstT, 0.65) * smoothstep(0.0, 0.06, uBurstT);',
     '  float ragged = (r1 - 0.5) * uBurst.z * 0.12;',             // 알갱이마다 파면이 닿는 시점이 다르다
     '  float bk = exp(-abs(bd - bw + ragged) / (uBurst.z * 0.22)) * env;',
     '  vec2 bdir = bd > 0.5 ? (p - uBurst.xy) / bd : vec2(0.0);',
@@ -214,7 +221,7 @@
     }
 
     // 목표 크기(FX.MOTIF_SIZE)에서 시작해, 서로/가장자리와 충돌하지 않는 최대 크기로 자동 축소
-    var maxScale = 1.04;                   // SCALES의 최댓값
+    var maxScale = MAX_SCALE;
     var cap = minSide * FX.MOTIF_SIZE;
     var edgeTop = topSafe - 46;            // 문양 위쪽은 헤더 라인 살짝 아래까지 허용
     var edgeLeft = leftSafe ? leftSafe - 40 : pad;   // 내비 축은 문양의 살짝 걸침만 허용
@@ -299,6 +306,7 @@
     if (show) {
       if (labelEl.textContent !== MOTIFS[best].label) {
         labelEl.textContent = MOTIFS[best].label;
+        labelEl.classList.toggle('ko', /[가-힣]/.test(MOTIFS[best].label));
       }
       // 커서 끝을 그대로 따라다닌다 (화면 밖으로 나가지 않게만 보정)
       var w = canvas.clientWidth, h = canvas.clientHeight;
@@ -421,10 +429,16 @@
     var idle = (now - lastPointer) > 3500;
     var tx = mouseX, ty = mouseY;
     if (idle && !reduceMotion) {
-      // 포인터가 없을 때: 가상의 빛이 문양들 위를 천천히 배회
+      // 포인터가 없을 때: 가상의 빛이 첫 문양 위에서 출발해 천천히 배회한다
+      // (도착이지 부재가 아니다 — 첫 방문자가 빈 흰 벽만 보지 않도록)
+      if (!idleStart) idleStart = now;
+      var ph = now - idleStart;
       var w = canvas.clientWidth, h = canvas.clientHeight;
-      tx = w * (0.5 + 0.34 * Math.sin(now * 0.00019));
-      ty = h * (0.48 + 0.3 * Math.sin(now * 0.00013 + 1.7));
+      var a0 = placed.length ? placed[0] : { x: w * 0.5, y: h * 0.48 };
+      tx = Math.max(20, Math.min(w - 20, a0.x + w * 0.30 * Math.sin(ph * 0.00019)));
+      ty = Math.max(96, Math.min(h - 20, a0.y + h * 0.26 * Math.sin(ph * 0.00013 + 1.7)));
+    } else {
+      idleStart = 0;
     }
     var ampTarget = 1;
     if (tx <= -9000) ampTarget = 0;
@@ -447,15 +461,23 @@
     } else { velX = 0; velY = 0; }
     prevSmX = smX; prevSmY = smY;
 
-    // 누름 상태 완화 + 교반 위상 누적 — 끌수록 더 섞이고, 손을 떼면 서서히 멎는다
+    // 누름 상태 완화 + 교반 위상 누적 — 끌수록 더 섞이고,
+    // 손을 떼면 위상이 천천히 잦아든다 (섞임을 되감지 않고 가라앉는다)
     pressAmp += (pressTarget - pressAmp) * 0.12;
-    if (pressAmp > 0.01 && !reduceMotion) {
+    if (pressTarget > 0 && !reduceMotion) {
       churn += (0.035 + 0.012 * Math.min(30, Math.hypot(velX, velY))) * pressAmp;
+    } else {
+      churn *= 0.985;
     }
 
     renderAt(smX, smY, amp, reduceMotion ? 0 : now * 0.001);
-    // 부조는 관성 있는 위치(smX,smY)를 쓰지만, 키워드 라벨은 커서 끝(tx,ty)을 그대로 따라간다
-    if (tx > -9000) updateLabel(tx, ty, amp);
+    // 키워드 라벨도 질량을 가진다 — 커서보다 살짝 늦게(0.22) 따라와 같은 세계의 물건이 된다
+    if (tx > -9000) {
+      if (lblX < -9000) { lblX = tx; lblY = ty; }
+      lblX += (tx - lblX) * 0.22;
+      lblY += (ty - lblY) * 0.22;
+      updateLabel(lblX, lblY, amp);
+    }
   }
 
   function onMove(e) {
