@@ -34,16 +34,16 @@
   ];
 
   /* 이 주제(key)에 속한 작품·연구 제목들 — works[].themes / studies[].themes 로 연결 (컬렉션의 평면도) */
-  function worksOfTheme(key) {
+  function titlesOfTheme(key) {
     var d = window.SITE_DATA || {};
     var all = (d.works || []).concat(d.studies || []);
     return all.filter(function (w) {
       var t = Array.isArray(w.themes) ? w.themes : String(w.themes || '').split(',');
       return w.title && t.map(function (s) { return String(s).trim(); }).indexOf(key) >= 0;
     }).map(function (w) {
-      /* 연구는 부제 앞까지만 — 라벨 한 줄이 벽화가 되지 않게 */
+      /* 연구는 부제 앞까지만 — 위성 하나가 벽화가 되지 않게 */
       return String(w.title).split(':')[0].split('—')[0].trim();
-    }).join(' · ');
+    });
   }
   /* 다섯 문양은 같은 크기 — 위계 없이 대등하게 */
   var SCALES = [1.0, 1.0, 1.0, 1.0, 1.0];
@@ -56,8 +56,9 @@
   var images = [];      // 로드된 문양 이미지
   var damaskImg = null; // 배경 다마스크 부조 (벽지처럼 아주 옅게 깔린다)
   var placed = [];      // 현재 배치 [{x, y, size}] (CSS px) — 리사이즈 시 재분산
-  var labelEl = null, labelMain = null, labelWorks = null;
+  var labelEl = null, labelMain = null;
   var labelIdx = -1;    // 현재 라벨이 가리키는 문양
+  var sats = [];        // 키워드를 둘러싼 위성 제목들 [{el, ang, rjx, rjy, lerp, amp, speed, phase, x, y}]
   var rescatterTimer = null;
 
   var dpr = 1;
@@ -311,11 +312,35 @@
     labelEl = document.createElement('div');
     labelEl.className = 'home-label';
     labelMain = document.createElement('span');
-    labelWorks = document.createElement('span');
-    labelWorks.className = 'home-label-works';
     labelEl.appendChild(labelMain);
-    labelEl.appendChild(labelWorks);
     (canvas.parentNode || document.body).appendChild(labelEl);
+  }
+
+  /* 위성 제목들 — 키워드 주위에 옹기종기, 저마다의 각도·반경·관성·궤도를 갖는다 */
+  function rebuildSats(motifIdx) {
+    var parent = canvas.parentNode || document.body;
+    sats.forEach(function (s) { if (s.el.parentNode) s.el.parentNode.removeChild(s.el); });
+    sats = [];
+    var titles = titlesOfTheme(MOTIFS[motifIdx].key);
+    var baseAng = Math.random() * Math.PI * 2;          // 접속마다 다른 시작 방위
+    titles.forEach(function (t, i) {
+      var el2 = document.createElement('span');
+      el2.className = 'home-sat';
+      el2.textContent = t;
+      el2.style.transitionDelay = (i * 70) + 'ms';      // 하나씩 스며 나온다
+      parent.appendChild(el2);
+      sats.push({
+        el: el2,
+        ang: baseAng + (i / titles.length) * Math.PI * 2 + (Math.random() - 0.5) * 0.5,
+        rjx: 34 + Math.random() * 44,                   // 타원 반경 여유 (라벨 크기에 더해짐)
+        rjy: 30 + Math.random() * 30,
+        lerp: 0.06 + Math.random() * 0.09,              // 저마다 다른 관성 — 사르르 끌려온다
+        amp: 5 + Math.random() * 6,                     // 제자리 숨쉬기 폭
+        speed: 0.25 + Math.random() * 0.5,
+        phase: Math.random() * Math.PI * 2,
+        x: -1e4, y: -1e4
+      });
+    });
   }
 
   function updateLabel(cssX, cssY, ampV) {
@@ -331,23 +356,45 @@
       if (labelIdx !== best) {
         labelIdx = best;
         labelMain.textContent = MOTIFS[best].label;
-        labelWorks.textContent = worksOfTheme(MOTIFS[best].key);
         var isKo = /[가-힣]/.test(MOTIFS[best].label);
         labelEl.classList.toggle('ko', isKo);
         labelEl.lang = isKo ? 'ko' : '';
+        rebuildSats(best);
       }
-      // 커서를 따라다닌다 — 두 줄 라벨이 화면 밖·바닥의 태그라인 띠(100px) 위로 나가지 않게만 보정
+      // 커서를 따라다닌다 — 화면 밖·바닥의 태그라인 띠(100px) 위로 나가지 않게만 보정
       var w = canvas.clientWidth, h = canvas.clientHeight;
-      var lw = labelEl.offsetWidth || 320;
-      var lh = labelEl.offsetHeight || 50;
+      var lw = labelEl.offsetWidth || 240;
+      var lh = labelEl.offsetHeight || 28;
       var x = cssX + 24, y = cssY + 34;
       if (x + lw > w - 16) x = Math.max(16, cssX - lw - 20);
       if (y + lh > h - 100) y = cssY - lh - 20;
       labelEl.style.left = x + 'px';
       labelEl.style.top = y + 'px';
       labelEl.classList.add('on');
+
+      // 위성들 — 키워드 상자를 타원으로 둘러싸고, 각자의 관성으로 사르르 따라오며 제자리에서 숨쉰다
+      var cx = x + lw / 2, cy = y + lh / 2;
+      var now = performance.now();
+      for (var si = 0; si < sats.length; si++) {
+        var s = sats[si];
+        var wob = reduceMotion ? 0 : 1;
+        var tx2 = cx + Math.cos(s.ang) * (lw / 2 + s.rjx) +
+                  wob * Math.sin(now * 0.001 * s.speed + s.phase) * s.amp;
+        var ty2 = cy + Math.sin(s.ang) * (lh / 2 + s.rjy + 22) +
+                  wob * Math.cos(now * 0.0008 * s.speed + s.phase * 1.7) * s.amp * 0.8;
+        var sw = s.el.offsetWidth || 120;
+        tx2 = Math.max(14, Math.min(w - sw - 14, tx2 - sw / 2));
+        ty2 = Math.max(90, Math.min(h - 60, ty2));
+        if (s.x < -9000) { s.x = tx2; s.y = ty2; }
+        s.x += (tx2 - s.x) * s.lerp;
+        s.y += (ty2 - s.y) * s.lerp;
+        s.el.style.left = s.x + 'px';
+        s.el.style.top = s.y + 'px';
+        s.el.classList.add('on');
+      }
     } else {
       labelEl.classList.remove('on');
+      sats.forEach(function (s) { s.el.classList.remove('on'); });
     }
   }
 
@@ -551,6 +598,7 @@
     active = false;
     if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
     if (labelEl) labelEl.classList.remove('on');
+    sats.forEach(function (s) { s.el.classList.remove('on'); });
     window.removeEventListener('pointermove', onMove);
     window.removeEventListener('pointerdown', onDown);
     window.removeEventListener('pointerup', onUp);

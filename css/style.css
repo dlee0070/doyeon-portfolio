@@ -248,17 +248,21 @@ body.on-home .site-header { background: transparent; }
 /* 입자 필터는 24px 이름 줄에만 — 12px 작품 줄까지 흔들면 가장 작은 글자가 가장 많이 뭉개진다 */
 .home-label > span:first-child { display: block; filter: url(#grainEdge); }
 
-/* 키워드 아래 — 이 주제에 속한 작품들의 이름 (컬렉션의 평면도) */
-.home-label-works {
-  display: block;
-  margin-top: 10px;
-  font-size: 12px;
-  font-weight: 400;
+/* 위성 제목 — 키워드를 옹기종기 둘러싸고 저마다의 관성으로 커서를 따라온다 */
+.home-sat {
+  position: fixed;
+  z-index: 2;
+  pointer-events: none;
+  font-size: 15px;
+  font-weight: 420;
   letter-spacing: var(--ls-data);
-  text-transform: none;
-  opacity: var(--muted);
+  line-height: 1;
+  color: var(--black);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.45s var(--ease);
 }
-.home-label-works:empty { display: none; }
+.home-sat.on { opacity: 0.62; }
 
 /* 포지셔닝 한 줄 — 기둥축(200px) 위, 바닥에서 40px. 홈에서만 */
 .home-tagline {
@@ -884,6 +888,7 @@ body.on-home .site-header { background: transparent; }
   .about-photo { margin: 8px 0 40px 8px; max-width: 240px; }
 
   .home-label { font-size: 18px; letter-spacing: var(--ls-label); }
+  .home-sat { font-size: 13px; }
   .home-tagline { left: var(--pad-x); bottom: 24px; max-width: calc(100% - 40px); }
   .study-thumb { display: none; }
   .study-year { width: 72px; }

@@ -1,10 +1,10 @@
 window.SITE_DATA = {
   "siteName": "DOYEON LEE",
-  "siteTagline": "Media artist in Seoul working between Korean material heritage, generative image and interactive space.",
+  "siteTagline": "Student in Seoul working between Korean material heritage, generative image and interactive space.",
   "about": {
-    "text": "I work with the material memory of Korean objects — the jade, coral and kingfisher feather of a Tteoljam, the leaf and steam of tea — and ask what happens to it when it is re-encoded as a technical image. Generative models and real-time engines let a fixed artifact move again: luster becomes flow, transparency becomes duration.\n\nMy current pieces are single-channel videos; the research beside them points toward interactive and XR encounters, where the viewer's body rather than the edit decides the time of the object. I am interested in heritage not as documentation but as a material that can still be worked.",
-    "statement": "I work with the material memory of Korean objects — the jade, coral and kingfisher feather of a Tteoljam, the leaf and steam of tea — and ask what happens to it when it is re-encoded as a technical image. Generative models and real-time engines let a fixed artifact move again: luster becomes flow, transparency becomes duration.\n\nMy current pieces are single-channel videos; the research beside them points toward interactive and XR encounters, where the viewer's body rather than the edit decides the time of the object. I am interested in heritage not as documentation but as a material that can still be worked.",
-    "bio": "Doyeon Lee (이도연) is a media artist and BFA candidate at Duksung Women's University, Seoul. Her work re-reads Korean material heritage through generative image and real-time engines, moving fixed museum objects into time-based and, increasingly, spatial media. Recent works include Time of Materiality (2026) and Osulloc Tea Incense (2026).",
+    "text": "I work with Korean objects or any other cultural heritage and ask what happens to it when it is re-encoded as a technical image. \n\nMy current pieces are single-channel videos; the research beside them points toward interactive and XR encounters, where the viewer's body rather than the edit decides the time of the object. I am interested in heritage not as documentation but as a material that can still be worked.",
+    "statement": "I work with Korean objects or any other cultural heritage and ask what happens to it when it is re-encoded as a technical image. \n\nMy current pieces are single-channel videos; the research beside them points toward interactive and XR encounters, where the viewer's body rather than the edit decides the time of the object. I am interested in heritage not as documentation but as a material that can still be worked.",
+    "bio": "",
     "directions": [
       "Interactive Installation",
       "XR & Immersive Space",
@@ -15,10 +15,11 @@ window.SITE_DATA = {
     ],
     "cv": [
       "Education",
-      "- BFA candidate, Duksung Women's University, Seoul"
+      "- Duksung Women's University, Seoul",
+      "Department of VR Convergence Engineering"
     ],
     "cvPdf": "",
-    "image": ""
+    "image": "content/media/about/증사-흑백2.jpg"
   },
   "contact": [
     {
@@ -27,22 +28,53 @@ window.SITE_DATA = {
       "href": ""
     },
     {
-      "label": "Instagram",
-      "value": "@eh_dldy",
-      "href": "https://www.instagram.com/eh_dldy/"
-    },
-    {
       "label": "Location",
       "value": "Seoul, KR (UTC+9)",
       "href": ""
     },
     {
       "label": "Open to",
-      "value": "Commissions · Collaborations · Residencies · Internships",
+      "value": "Commissions · Collaborations · Research ·Internships ",
       "href": ""
+    },
+    {
+      "label": "Linkedin",
+      "value": "",
+      "href": "linkedin.com/in/doyeon-lee-8a314b395?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
     }
   ],
   "works": [
+    {
+      "id": "pompeii-heritage-xr-reseravtion-galaxy-xr",
+      "title": "Pompeii Heritage XR Reseravtion - Galaxy XR",
+      "year": "2026",
+      "cover": "",
+      "media": [
+        {
+          "type": "video",
+          "src": "content/media/pompeii-heritage-xr-reseravtion-galaxy-xr/시연영상-수정.mp4",
+          "caption": ""
+        }
+      ],
+      "description": "",
+      "links": [],
+      "medium": "",
+      "duration": "",
+      "format": "",
+      "role": "",
+      "tools": "Unity6",
+      "credits": "",
+      "exhibitions": [],
+      "themes": [
+        "heritage",
+        "xr"
+      ],
+      "descriptionKo": "",
+      "hover": {
+        "start": 109,
+        "length": 30
+      }
+    },
     {
       "id": "ethereal",
       "title": "Ethereal",
@@ -62,7 +94,9 @@ window.SITE_DATA = {
       "tools": "Unreal Engine",
       "credits": "",
       "exhibitions": [],
-      "themes": ["moving"],
+      "themes": [
+        "moving"
+      ],
       "description": "A story of exploring an alien planet. Arriving on a world no one was supposed to have reached — and finding that someone already had.\n\nA real-time environment built in Unreal Engine and captured as a single-channel video: the planet's surface, its light and the traces left behind are the scenery of a first contact that turns out to be a second one.",
       "descriptionKo": "외계 행성에서 탐험하는 이야기\n\"행성에 처음 도달했는데, 이미 사람이 있었던 흔적이 있다\"",
       "links": [],
@@ -87,9 +121,11 @@ window.SITE_DATA = {
       "duration": "",
       "format": "",
       "role": "Concept, direction, generative pipeline, editing",
-      "tools": "Generative AI, video editing",
+      "tools": "Generative AI",
       "credits": "",
-      "exhibitions": ["2026 — CA Best Award, HCIK Korea 2026"],
+      "exhibitions": [
+        "2026 — CA Best Award, HCIK Korea 2026"
+      ],
       "themes": [
         "heritage",
         "moving"
@@ -204,7 +240,7 @@ window.SITE_DATA = {
       "duration": "",
       "format": "",
       "role": "World-building, environment design, lighting",
-      "tools": "Unreal Engine",
+      "tools": "Unreal Engine 5",
       "credits": "",
       "exhibitions": [],
       "themes": [
@@ -216,8 +252,8 @@ window.SITE_DATA = {
     },
     {
       "id": "osulluc-tea-insense",
-      "title": "Osulloc Tea Incense",
-      "year": "2026",
+      "title": "Osulloc Tea Incense Video",
+      "year": "2025",
       "cover": "content/media/osulluc-tea-insense/creative03-frame-at-0m3s.jpg",
       "media": [
         {
@@ -230,16 +266,103 @@ window.SITE_DATA = {
       "duration": "",
       "format": "",
       "role": "Concept, direction, editing, sound",
-      "tools": "Generative AI, sound design, video editing",
+      "tools": "Generative AI - Google Flow 3.0 , sound design, After Effect",
       "credits": "",
       "exhibitions": [],
       "themes": [
-        "media",
         "moving"
       ],
       "description": "This project expands the momentary sensations of drinking tea into the realms of sight and sound. Beyond being a simple beverage, tea is a synesthetic medium that encapsulates scent, taste, temperature, and even the landscape of its origin. This work seeks to elevate the experience of tea — traditionally confined to taste and smell — into a multifaceted visual and auditory dimension.\n\nThe core concept of the work lies in the 'Materiality' of the elements that constitute tea. Physical components such as tea leaves, powder, pulp, moisture, light, and temperature serve as the starting point of the exploration. By intertwining these with the environmental characteristics of the tea's origin, the work reinterprets the abstract emotions and impressions felt while drinking tea into a sensory visual language.\n\nThe narrative follows a sequence: 'The Space of Growth → The Raw Material → The Sensation of Consumption.' While based on the intuitively recognizable forms and textures of the raw ingredients, the work goes beyond mere representation. By integrating abstract movements of light and sound, it offers an expanded experience to the audience. This allows viewers to preview the character of the tea through their senses before drinking it or to have their sensations amplified while consuming it.",
       "descriptionKo": "본 영상은 차를 마시는 찰나의 감각을 시각과 청각의 영역으로 확장하여 전달한다. 차는 단순한 음료의 정의를 넘어 향과 맛, 온도, 그리고 그것이 길러진 토양의 풍경까지 품고 있는 공감각적인 매개체다. 작품은 미각과 후각에 머물러 있던 차의 경험을 시각적, 청각적 차원으로 극대화하여 표현하고자 했다.\n\n작업의 핵심 키워드는 차를 구성하는 요소들의 물성(Materiality)이다. 찻잎, 분말, 과육, 수분, 빛, 그리고 온도와 같은 물리적 요소들을 탐구의 출발점으로 삼았다. 여기에 차가 재배된 원산지의 환경적 특성을 결합하여, 차를 마실 때 느껴지는 추상적인 감정과 인상을 감각적인 영상 언어로 재해석한다.\n\n작품의 내러티브는 차가 자라난 공간 → 차의 원물 → 차를 마시는 순간의 감각으로 이어지는 흐름을 따른다. 직관적으로 인지 가능한 원물의 형태와 질감을 토대로 하되, 이를 단순한 재현에 그치지 않고 추상적인 빛의 움직임과 사운드를 결합함으로써 관람자에게 보다 확장된 경험을 선사한다. 이를 통해 관람자는 차를 마시기 전 시청각을 통해 그 성격을 예습하거나, 차를 마시는 동시에 감각이 증폭되는 경험을 마주하게 된다.",
       "links": []
+    },
+    {
+      "id": "mflo-you-got-this-music-video-nonofficial",
+      "title": "Mflo - \"You got this\" Music Video (nonofficial)",
+      "year": "2025",
+      "cover": "",
+      "media": [
+        {
+          "type": "video",
+          "src": "content/media/mflo-you-got-this-music-video-nonofficial/m-flo-you-got-this-fan-made-mv-veo3-after-effect.mp4",
+          "caption": ""
+        }
+      ],
+      "description": "",
+      "links": [],
+      "medium": "",
+      "duration": "",
+      "format": "",
+      "role": "",
+      "tools": "After Effect, Generative AI - Google Flow",
+      "credits": "",
+      "exhibitions": [],
+      "themes": [],
+      "descriptionKo": "",
+      "hover": {
+        "start": 213,
+        "length": 30
+      }
+    },
+    {
+      "id": "rose-for-media-facade",
+      "title": "Rose - for media facade in Korean traditional market",
+      "year": "2025",
+      "cover": "content/media/rose-for-media-facade/rose-frame-at-0m49s.jpg",
+      "media": [
+        {
+          "type": "video",
+          "src": "content/media/rose-for-media-facade/rose.mp4",
+          "caption": ""
+        },
+        {
+          "type": "embed",
+          "src": "https://youtu.be/FdrjNmd_veE?si=ychcy7R-ppMAzqSK",
+          "caption": ""
+        }
+      ],
+      "description": "",
+      "links": [],
+      "medium": "",
+      "duration": "",
+      "format": "",
+      "role": "",
+      "tools": "Google Flow 3.0, After Effect",
+      "credits": "",
+      "exhibitions": [],
+      "themes": [
+        "moving"
+      ],
+      "descriptionKo": "",
+      "hover": {
+        "length": 7
+      }
+    },
+    {
+      "id": "starwars-short-film-blender",
+      "title": "StarWars - short film",
+      "year": "2024",
+      "cover": "content/media/starwars-short-film-blender/0836.png",
+      "media": [
+        {
+          "type": "video",
+          "src": "content/media/starwars-short-film-blender/starwars-short-animation.mp4",
+          "caption": ""
+        }
+      ],
+      "description": "",
+      "links": [],
+      "medium": "Single Channel video - made 100% with Blender",
+      "duration": "",
+      "format": "",
+      "role": "",
+      "tools": "Blender",
+      "credits": "",
+      "exhibitions": [],
+      "themes": [
+        "moving"
+      ],
+      "descriptionKo": ""
     }
   ],
   "studies": [
@@ -248,7 +371,9 @@ window.SITE_DATA = {
       "title": "Screen Composition in Motion: Barycenter Dynamics in Kamen Rider and Super Sentai",
       "year": "2026",
       "status": "ongoing",
-      "themes": ["moving", "data"],
+      "themes": [
+        "data"
+      ],
       "keywords": [
         "Visual Weight",
         "Perceptual Balance",
@@ -274,36 +399,15 @@ window.SITE_DATA = {
       "links": []
     },
     {
-      "id": "gazeflow",
-      "title": "GazeFlow — Watersheds of Attention in Gothic Architecture",
-      "year": "2026–",
-      "status": "ongoing",
-      "themes": ["data"],
-      "keywords": [
-        "Visual Saliency",
-        "Gothic Architecture",
-        "Computational Aesthetics",
-        "Rib Vaults"
-      ],
-      "summary": "Reads saliency maps of Gothic rib-vaulted interiors as terrain: streamlines trace where predicted attention flows, watersheds divide where it pools. A placebo-controlled experiment tests whether the converging lines of Gothic structure measurably enlarge a target's basin.",
-      "cover": "content/media/gazeflow/gazeflow-overlay.jpg",
-      "media": [
-        {
-          "type": "image",
-          "src": "content/media/gazeflow/gazeflow-overlay.jpg",
-          "caption": "GazeFlow — attention streamlines and watershed basins over a synthetic nave scene"
-        }
-      ],
-      "description": "This research asks whether architectural structure measurably designs visual attention, taking Gothic rib-vaulted interiors as its case. A self-built Python instrument, GazeFlow, reads computational saliency maps as terrain: gradient streamlines trace where model-predicted attention flows, and watershed segmentation divides each image into the basins that pool it.\n\nThe ongoing experiment injects converging lines — the geometry Gothic builders trusted — and measures, against ink-matched placebo lines and across two independent saliency models, how far a target's attention basin actually grows. All claims concern model-predicted attention, not human eyes; the instrument is built and self-validated, and the confirmatory experiment is still ahead. Unpublished, in progress.",
-      "relatedWorks": [],
-      "links": []
-    },
-    {
       "id": "woven-names",
       "title": "Woven Names: Formalizing Kente Visual Grammar for Cross-Cultural Generative Art",
       "year": "2026–",
       "status": "ongoing",
-      "themes": ["heritage", "media"],
+      "themes": [
+        "heritage",
+        "media",
+        "data"
+      ],
       "keywords": [
         "Kente",
         "Formal Grammar",
@@ -321,6 +425,33 @@ window.SITE_DATA = {
         }
       ],
       "description": "This study transcribes a pilot corpus of vintage Asante-attributed kente cloths into discrete symbol sequences, then writes a stochastic parametric grammar of their composition, grounded in published Ghanaian scholarship — calibrated on training cloths, evaluated against a sealed hold-out set. Early observations, such as strip-assembly phase patterns and the divergence between how often and how large Akan colour categories appear, are reported as corpus-relative and exploratory.\n\nA companion media-art system carries the grammar forward: a visitor traces their Hanja given name, confirms its meaning, and receives a pattern card woven by the grammar — a graded matching that presents itself as translation, never as equivalence. All cultural-meaning claims stay within cited Ghanaian sources. Unpublished, in progress.",
+      "relatedWorks": [],
+      "links": []
+    },
+    {
+      "id": "gazeflow",
+      "title": "GazeFlow — Watersheds of Attention in Gothic Architecture",
+      "year": "2026–",
+      "status": "ongoing",
+      "themes": [
+        "data"
+      ],
+      "keywords": [
+        "Visual Saliency",
+        "Gothic Architecture",
+        "Computational Aesthetics",
+        "Rib Vaults"
+      ],
+      "summary": "Reads saliency maps of Gothic rib-vaulted interiors as terrain: streamlines trace where predicted attention flows, watersheds divide where it pools. A placebo-controlled experiment tests whether the converging lines of Gothic structure measurably enlarge a target's basin.",
+      "cover": "content/media/gazeflow/gazeflow-overlay.jpg",
+      "media": [
+        {
+          "type": "image",
+          "src": "content/media/gazeflow/gazeflow-overlay.jpg",
+          "caption": "GazeFlow — attention streamlines and watershed basins over a synthetic nave scene"
+        }
+      ],
+      "description": "This research asks whether architectural structure measurably designs visual attention, taking Gothic rib-vaulted interiors as its case. A self-built Python instrument, GazeFlow, reads computational saliency maps as terrain: gradient streamlines trace where model-predicted attention flows, and watershed segmentation divides each image into the basins that pool it.\n\nThe ongoing experiment injects converging lines — the geometry Gothic builders trusted — and measures, against ink-matched placebo lines and across two independent saliency models, how far a target's attention basin actually grows. All claims concern model-predicted attention, not human eyes; the instrument is built and self-validated, and the confirmatory experiment is still ahead. Unpublished, in progress.",
       "relatedWorks": [],
       "links": []
     }
