@@ -228,23 +228,54 @@ img, video { display: block; }
 body.on-home .site-header { background: transparent; }
 
 /* 홈 문양 hover 시 나타나는 주제 키워드 */
+/* 홈 키워드 — 기능 라벨이 아니라 「이름」의 레지스터 (상세 제목과 같은 24/330/0.3em) */
 .home-label {
   position: fixed;
   z-index: 2;
   pointer-events: none;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: var(--ls-label);
+  font-size: 24px;
+  font-weight: 330;
+  letter-spacing: var(--ls-display);
   text-transform: uppercase;
   line-height: 1;
   color: var(--black);
   white-space: nowrap;
   opacity: 0;
   transition: opacity 0.3s var(--ease);
-  filter: url(#grainEdge);
 }
-.home-label.on { opacity: 0.78; }
+.home-label.on { opacity: 1; }
 .home-label.ko { letter-spacing: 0.03em; }   /* 국문 병기 라벨은 라틴 자간을 벗는다 */
+/* 입자 필터는 24px 이름 줄에만 — 12px 작품 줄까지 흔들면 가장 작은 글자가 가장 많이 뭉개진다 */
+.home-label > span:first-child { display: block; filter: url(#grainEdge); }
+
+/* 키워드 아래 — 이 주제에 속한 작품들의 이름 (컬렉션의 평면도) */
+.home-label-works {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: var(--ls-data);
+  text-transform: none;
+  opacity: var(--muted);
+}
+.home-label-works:empty { display: none; }
+
+/* 포지셔닝 한 줄 — 기둥축(200px) 위, 바닥에서 40px. 홈에서만 */
+.home-tagline {
+  position: fixed;
+  left: var(--nav-w);
+  bottom: 40px;
+  z-index: 2;
+  max-width: 480px;
+  font-size: 12px;
+  letter-spacing: var(--ls-data);
+  line-height: 1.6;
+  opacity: 0;
+  pointer-events: none;
+  animation: tagline-in 0.6s var(--ease) 0.2s forwards;
+}
+.home-tagline:empty { display: none; }
+@keyframes tagline-in { to { opacity: var(--muted); } }
 
 /* ---------- works strip ---------- */
 
@@ -334,6 +365,26 @@ body.on-home .site-header { background: transparent; }
   -webkit-user-drag: none;
 }
 
+/* 벽은 데스크톱에서 침묵한다 — 제목은 커서 라벨이 말한다.
+   hover가 없는 터치 기기에서만 작품 아래에 이름표가 걸린다 */
+.strip-caption {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  max-width: 100%;
+  white-space: normal;
+  opacity: var(--muted);
+}
+@media (hover: none) {
+  .strip-caption { display: block; }
+}
+
 /* 벽의 현재 위치 — 선 위를 미끄러지는 짧은 선 하나 */
 .strip-progress {
   position: fixed;
@@ -404,12 +455,34 @@ body.on-home .site-header { background: transparent; }
 
 .study-row {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 28px;
   padding: 20px 0;
   border-bottom: var(--hairline);
   cursor: pointer;
   transition: opacity 0.3s var(--ease), transform 0.4s var(--ease);
+}
+
+/* Research 행 — 기간 | 제목 + 상태·키워드 + 한 줄 요약 | 썸네일(112×63, 14 보조단위) */
+.study-main { flex: 1; min-width: 0; }
+.study-sub {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: var(--ls-data);
+  opacity: var(--muted);
+}
+.study-summary {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 480px;
+}
+.study-thumb {
+  flex: none;
+  width: 112px;
+  height: 63px;
+  object-fit: cover;
+  margin-left: auto;
 }
 .study-row:first-child { border-top: var(--hairline); }
 /* hover — 물러나지 않고 반 걸음 다가온다. 연도가 함께 깨어난다 */
@@ -459,6 +532,63 @@ body.on-home .site-header { background: transparent; }
   margin-bottom: 1.4em;
   white-space: pre-line;
 }
+
+/* 섹션 소제목 — Statement / Biography / Directions / CV / Abstract / Related
+   이름표(view-label)와 같은 「이름」 레지스터(0.3em) — 행 라벨(0.14em)과 구별된다. 아치는 이름표와 벽감에만 */
+.about-heading,
+.detail-heading {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: var(--ls-display);
+  text-transform: uppercase;
+  line-height: 1;
+  opacity: var(--muted);
+}
+.about-heading { margin: 56px 0 16px; }
+.about-inner > .about-heading:first-child,
+.about-photo + .about-heading { margin-top: 0; }
+
+.about-directions {
+  font-size: 15px;
+  line-height: 1.9;
+}
+
+/* CV — 연도 | 내용. contact 행과 같은 문법 */
+.cv-section {
+  margin: 40px 0 10px;
+  font-size: 12px;
+  letter-spacing: var(--ls-data);
+  opacity: var(--muted);
+}
+.cv-section:first-child { margin-top: 0; }
+.cv-row {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  padding: 14px 0;
+  border-bottom: var(--hairline);
+  font-size: 15px;
+}
+.cv-row:first-child,
+.cv-section + .cv-row { border-top: var(--hairline); }
+.cv-year {
+  flex: none;
+  width: 112px;
+  font-size: 12px;
+  letter-spacing: var(--ls-data);
+  opacity: var(--muted);
+}
+.about-cvlink {
+  display: inline-block;
+  margin-top: 40px;
+  font-size: 13px;
+  letter-spacing: var(--ls-data);
+  border-bottom: 1px solid rgba(0, 0, 0, var(--line-soft));
+  padding-bottom: 1px;
+  transition: border-color 0.25s var(--ease);
+}
+.about-cvlink:hover,
+.about-cvlink:focus-visible { border-color: var(--black); }
 
 .contact-list { max-width: 640px; }
 
@@ -630,12 +760,55 @@ body.on-home .site-header { background: transparent; }
   pointer-events: none;
 }
 
+/* 톰스톤 — 미술관 벽의 작품 정보. contact 행 문법 (112px 라벨 열, 헤어라인, 20px) */
+.detail-meta {
+  max-width: 640px;
+  margin: 56px auto 0;
+}
+.meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 28px;
+  padding: 20px 0;
+  border-bottom: var(--hairline);
+}
+.meta-row:first-child { border-top: var(--hairline); }
+.meta-label {
+  flex: none;
+  width: 112px;
+  font-size: 12px;
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  opacity: var(--muted);
+}
+.meta-value { font-size: 15px; line-height: 1.7; min-width: 0; }
+.meta-value a {
+  border-bottom: 1px solid rgba(0, 0, 0, var(--line-soft));
+  padding-bottom: 1px;
+  transition: border-color 0.25s var(--ease);
+}
+.meta-value a:hover,
+.meta-value a:focus-visible { border-color: var(--black); }
+
+.detail-heading {
+  max-width: 640px;
+  margin: 56px auto 0;
+}
+
 .detail-desc {
   max-width: 640px;
   margin: 80px auto 0;
   font-size: 15px;
   line-height: 1.9;
   white-space: pre-line;
+}
+.detail-heading + .detail-desc { margin-top: 16px; }
+
+/* 국문 — 영문 아래, 옅은 선 하나 건너 */
+.detail-desc.ko {
+  margin-top: 40px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(0, 0, 0, var(--line-faint));
 }
 
 .detail-links {
@@ -645,6 +818,7 @@ body.on-home .site-header { background: transparent; }
   flex-direction: column;
   gap: 10px;
 }
+.detail-heading + .detail-links { margin-top: 16px; }
 
 .detail-links a {
   width: fit-content;
@@ -707,7 +881,14 @@ body.on-home .site-header { background: transparent; }
   .view-contact::before { display: none; }
 
   .view-label { margin-bottom: 32px; }
-  .about-photo { margin: 8px 0 40px 8px; }
+  .about-photo { margin: 8px 0 40px 8px; max-width: 240px; }
+
+  .home-label { font-size: 18px; letter-spacing: var(--ls-label); }
+  .home-tagline { left: var(--pad-x); bottom: 24px; max-width: calc(100% - 40px); }
+  .study-thumb { display: none; }
+  .study-year { width: 72px; }
+  .meta-label { width: 84px; }
+  .cv-year { width: 72px; }
 
   .detail-title { font-size: 18px; letter-spacing: var(--ls-label); }
   .detail-body { padding: 32px var(--pad-x) 100px; }

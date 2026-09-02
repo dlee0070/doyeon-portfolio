@@ -8,6 +8,16 @@
   var DATA = window.SITE_DATA || { siteName: 'PORTFOLIO', works: [], studies: [], about: {}, contact: [] };
   var SECTIONS = ['home', 'works', 'about', 'contact', 'studies'];
 
+  /* 홈 문양의 주제 키 ↔ 표시 이름 (home.js MOTIFS 와 같은 어휘) */
+  var THEME_LABELS = {
+    heritage: 'Cultural Heritage',
+    media: 'Interactive Media Art',
+    xr: 'XR',
+    data: 'Data Analysis'
+  };
+  var STATUS_LABELS = { ongoing: 'Ongoing', proposed: 'Proposed', completed: 'Completed', past: 'Completed' };
+  var STATUS_ORDER = { ongoing: 0, proposed: 1, completed: 2, past: 2 };
+
   var stage = {
     home: document.getElementById('view-home'),
     works: document.getElementById('view-works'),
@@ -36,6 +46,12 @@
     return n;
   }
 
+  /* 배열이든 쉼표 문자열이든 → 다듬은 배열 */
+  function listOf(x) {
+    if (Array.isArray(x)) return x.map(function (s) { return String(s).trim(); }).filter(Boolean);
+    return String(x || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+  }
+
   function extOf(src) {
     var m = /\.([a-z0-9]+)(?:[?#].*)?$/i.exec(src || '');
     return m ? m[1].toLowerCase() : '';
@@ -50,6 +66,14 @@
     return 'image';
   }
 
+  function firstImage(item) {
+    if (item.cover) return item.cover;
+    for (var k = 0; k < (item.media || []).length; k++) {
+      if (mediaType(item.media[k]) === 'image') return item.media[k].src;
+    }
+    return '';
+  }
+
   function embedSrc(url) {
     var m;
     if ((m = /(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/.exec(url))) {
@@ -59,6 +83,18 @@
       return 'https://player.vimeo.com/video/' + m[1];
     }
     return url;
+  }
+
+  /* hover 자동 재생 설정 — 관리도구가 저장한 값. 없으면 현행 동작(중간부터 4초 반복, 1×) */
+  function hoverSettings(w) {
+    var hv = w.hover || {};
+    return {
+      on: hv.enabled !== false,
+      start: (hv.start != null && hv.start !== '' && isFinite(+hv.start) && +hv.start >= 0) ? +hv.start : null,
+      len: (+hv.length >= 1) ? Math.min(+hv.length, 30) : 4,
+      rate: (+hv.rate > 0) ? +hv.rate : 1,
+      loop: hv.loop !== false
+    };
   }
 
   var PLACEHOLDER =
@@ -77,7 +113,10 @@
 
   var siteName = DATA.siteName || 'PORTFOLIO';
   document.getElementById('siteName').textContent = siteName;
-  document.title = siteName + ' — Portfolio';
+  // document.title 은 index.html 의 SEO 제목을 그대로 둔다 (검색엔진은 렌더된 제목을 읽는다)
+
+  var tagline = document.getElementById('homeTagline');
+  if (tagline) tagline.textContent = DATA.siteTagline || '';
 
   /* ---------- works strip ---------- */
 
@@ -85,7 +124,7 @@
     var v = stage.works;
     v.textContent = '';
     if (!DATA.works || !DATA.works.length) {
-      v.appendChild(el('p', 'strip-empty', '아직 등록된 작업물이 없습니다 — 관리도구로 추가해 주세요.'));
+      v.appendChild(el('p', 'strip-empty', 'No works yet.'));
       return;
     }
     var strip = el('div', 'strip');
@@ -116,8 +155,8 @@
       }
       var node;
       if (firstMedia && mediaType(firstMedia) === 'video') {
-        var HIGHLIGHT_LEN = 4; // hover 시 재생할 하이라이트 길이(초)
-        var hlStart = 0;
+        var hv = hoverSettings(w);
+        var hlStart = 0, hlEnd = 0;
 
         var vid = document.createElement('video');
         vid.src = firstMedia.src;
@@ -126,19 +165,31 @@
         vid.preload = 'metadata';
 
         vid.addEventListener('loadedmetadata', function () {
-          if (isFinite(vid.duration) && vid.duration > 0) {
-            hlStart = vid.duration / 2;
-            if (a.classList.contains('previewing')) vid.currentTime = hlStart;
+          var d = vid.duration;
+          if (!isFinite(d) || d <= 0) return;
+          hlStart = (hv.start == null || hv.start >= d) ? d / 2 : Math.min(hv.start, Math.max(0, d - 0.5));
+          hlEnd = Math.min(hlStart + hv.len, d);
+          if (a.classList.contains('previewing')) vid.currentTime = hlStart;
+        });
+        /* 하이라이트 구간만 — 반복이거나, 끝에서 멈추거나 */
+        vid.addEventListener('timeupdate', function () {
+          if (vid.paused || !hlEnd) return;
+          if (vid.currentTime >= hlEnd) {
+            if (hv.loop) vid.currentTime = hlStart;
+            else vid.pause();
           }
         });
-        /* 하이라이트 구간만 반복 */
-        vid.addEventListener('timeupdate', function () {
-          if (vid.paused) return;
-          if (vid.currentTime >= hlStart + HIGHLIGHT_LEN || vid.ended) vid.currentTime = hlStart;
+        /* 구간 끝이 영상 끝과 같으면 브라우저가 먼저 멈춘다 — ended 에서 되감아야 반복이 이어진다 */
+        vid.addEventListener('ended', function () {
+          if (!hv.loop || !a.classList.contains('previewing')) return;
+          vid.currentTime = hlStart;
+          var p = vid.play();
+          if (p && p.catch) p.catch(function () {});
         });
 
         var enterPv = function () {
           a.classList.add('previewing');
+          vid.playbackRate = hv.rate;
           if (hlStart) vid.currentTime = hlStart;
           var p = vid.play();
           if (p && p.catch) p.catch(function () {});
@@ -146,13 +197,15 @@
         var leavePv = function () {
           a.classList.remove('previewing');
           vid.pause();
-          if (!w.cover) vid.currentTime = 0; // 커버 없으면 첫 프레임이 대표이미지 역할
+          vid.currentTime = w.cover ? hlStart : 0; // 커버 없으면 첫 프레임이 대표이미지 역할
         };
-        a.addEventListener('mouseenter', enterPv);
-        a.addEventListener('mouseleave', leavePv);
-        if (touchIO) {
-          a._pv = { enter: enterPv, leave: leavePv };
-          touchIO.observe(a);
+        if (hv.on) {
+          a.addEventListener('mouseenter', enterPv);
+          a.addEventListener('mouseleave', leavePv);
+          if (touchIO) {
+            a._pv = { enter: enterPv, leave: leavePv };
+            touchIO.observe(a);
+          }
         }
 
         if (w.cover) {
@@ -210,23 +263,21 @@
           if (hoverViewer) hoverViewer.setActive(false);
         });
       } else {
-        var src = w.cover;
-        if (!src && w.media) {
-          for (var k = 0; k < w.media.length; k++) {
-            if (mediaType(w.media[k]) === 'image') { src = w.media[k].src; break; }
-          }
-        }
         node = document.createElement('img');
-        node.src = src || PLACEHOLDER;
+        node.src = firstImage(w) || PLACEHOLDER;
         node.alt = w.title || '';
         node.loading = i > 5 ? 'lazy' : 'eager';
         node.draggable = false;
       }
       a.appendChild(node);
 
+      /* 터치 기기 전용 이름표 (데스크톱 벽은 침묵 — 커서 라벨이 말한다) */
+      a.appendChild(el('span', 'strip-caption', (w.title || '') + (w.year ? ' — ' + w.year : '')));
+
       a.addEventListener('pointerenter', function (e) {
         if (e.pointerType === 'touch') return;
-        showLabel(w.title + (w.year ? ' — ' + w.year : ''));
+        var medium = String(w.medium || '').split(/[,—–]/)[0].trim();
+        showLabel(w.title + (w.year ? ' — ' + w.year : '') + (medium ? ' · ' + medium : ''));
       });
       a.addEventListener('pointerleave', hideLabel);
       strip.appendChild(a);
@@ -326,27 +377,54 @@
     labelOn = false;
   }
 
-  /* ---------- studies ---------- */
+  /* ---------- research (studies) ---------- */
+
+  function statusOf(s) {
+    var k = String(s.status || 'completed').toLowerCase();
+    return STATUS_LABELS[k] ? k : 'completed';
+  }
 
   function buildStudies() {
     var v = stage.studies;
     v.textContent = '';
-    v.appendChild(el('p', 'view-label', 'Studies'));
-    var hasList = DATA.studies && DATA.studies.length;
+    v.appendChild(el('p', 'view-label', 'Research'));
+    var items = (DATA.studies || []).slice();
+    var hasList = items.length > 0;
     var list = el('div', 'studies-list');
     if (!hasList) {
-      if (!DATA.studiesGif) list.appendChild(el('p', 'strip-empty', '아직 등록된 항목이 없습니다.'));
+      if (!DATA.studiesGif) list.appendChild(el('p', 'strip-empty', 'No research entries yet.'));
     } else {
-      DATA.studies.forEach(function (s) {
+      /* 진행 중 → 제안 → 완료 순, 같은 묶음 안에서는 관리도구 순서 */
+      items.sort(function (a, b) {
+        return STATUS_ORDER[statusOf(a)] - STATUS_ORDER[statusOf(b)];
+      });
+      items.forEach(function (s) {
         var row = el('a', 'study-row');
         row.href = '#s/' + encodeURIComponent(s.id);
         row.appendChild(el('span', 'study-year', s.year || ''));
-        row.appendChild(el('span', 'study-title', s.title || ''));
+
+        var main = el('div', 'study-main');
+        main.appendChild(el('div', 'study-title', s.title || ''));
+        var sub = [STATUS_LABELS[statusOf(s)]].concat(listOf(s.keywords)).join(' · ');
+        main.appendChild(el('div', 'study-sub', sub));
+        if (s.summary) main.appendChild(el('p', 'study-summary', s.summary));
+        row.appendChild(main);
+
+        var img = firstImage(s);
+        if (img) {
+          var th = el('img', 'study-thumb');
+          th.src = img;
+          th.alt = '';
+          th.loading = 'lazy';
+          th.draggable = false;
+          row.appendChild(th);
+        }
         list.appendChild(row);
       });
     }
     if (hasList || !DATA.studiesGif) v.appendChild(list);
-    if (DATA.studiesGif) {
+    /* GIF 는 목록이 비어 있을 때만 — 연구가 채워지면 방은 연구로 말한다 */
+    if (!hasList && DATA.studiesGif) {
       var gif = el('img', 'studies-gif');
       gif.src = DATA.studiesGif;
       gif.alt = '';
@@ -356,6 +434,10 @@
   }
 
   /* ---------- about / contact ---------- */
+
+  function paragraphs(text) {
+    return String(text || '').split(/\n\s*\n/).map(function (p) { return p.trim(); }).filter(Boolean);
+  }
 
   function buildAbout() {
     var v = stage.about;
@@ -369,11 +451,61 @@
       img.alt = siteName;
       inner.appendChild(img);
     }
-    var txt = el('div', 'about-text');
-    String(ab.text || '').split(/\n\s*\n/).forEach(function (parag) {
-      if (parag.trim()) txt.appendChild(el('p', null, parag.trim()));
-    });
-    inner.appendChild(txt);
+
+    var statement = paragraphs(ab.statement || ab.text);
+    if (statement.length) {
+      inner.appendChild(el('h2', 'about-heading', 'Statement'));
+      var txt = el('div', 'about-text');
+      statement.forEach(function (p) { txt.appendChild(el('p', null, p)); });
+      inner.appendChild(txt);
+    }
+
+    var bio = paragraphs(ab.bio);
+    if (bio.length) {
+      inner.appendChild(el('h2', 'about-heading', 'Biography'));
+      var bt = el('div', 'about-text');
+      bio.forEach(function (p) { bt.appendChild(el('p', null, p)); });
+      inner.appendChild(bt);
+    }
+
+    var dirs = listOf(ab.directions);
+    if (dirs.length) {
+      inner.appendChild(el('h2', 'about-heading', 'Directions'));
+      inner.appendChild(el('p', 'about-directions', dirs.join(' · ')));
+    }
+
+    /* CV — 한 줄 = 한 항목. 연도로 시작하면 행, "- " 로 시작하면 연도 없는 행, 나머지는 소제목 */
+    var cv = Array.isArray(ab.cv) ? ab.cv : String(ab.cv || '').split('\n');
+    cv = cv.map(function (s) { return String(s).trim(); }).filter(Boolean);
+    if (cv.length) {
+      inner.appendChild(el('h2', 'about-heading', 'CV'));
+      var cvWrap = el('div', 'about-cv');
+      cv.forEach(function (line) {
+        var m = /^(\d{4}(?:\s*[–-]\s*(?:\d{4}|\d{2}|present)?)?)\s+(.+)$/i.exec(line);
+        if (m) {
+          var r = el('div', 'cv-row');
+          r.appendChild(el('span', 'cv-year', m[1].replace(/\s+/g, '')));
+          r.appendChild(el('span', 'cv-text', m[2]));
+          cvWrap.appendChild(r);
+        } else if (/^[-–•]\s*/.test(line)) {
+          var r2 = el('div', 'cv-row');
+          r2.appendChild(el('span', 'cv-year', ''));
+          r2.appendChild(el('span', 'cv-text', line.replace(/^[-–•]\s*/, '')));
+          cvWrap.appendChild(r2);
+        } else {
+          cvWrap.appendChild(el('div', 'cv-section', line));
+        }
+      });
+      inner.appendChild(cvWrap);
+    }
+
+    if (ab.cvPdf) {
+      var pdf = el('a', 'about-cvlink', 'Download CV (PDF)');
+      pdf.href = ab.cvPdf;
+      pdf.target = '_blank';
+      pdf.rel = 'noopener';
+      inner.appendChild(pdf);
+    }
     v.appendChild(inner);
   }
 
@@ -409,6 +541,64 @@
     v.appendChild(list);
   }
 
+  /* ---------- crawlable index — data.js 전체를 검색엔진이 읽을 수 있게 DOM에 올린다 ---------- */
+
+  function buildIndex() {
+    var sec = el('section', 'site-index');
+    sec.id = 'index';
+    sec.hidden = true;   // display:none — 스크린리더는 중복을 건너뛰고, 검색엔진(모바일 우선)은 읽는다
+    sec.appendChild(el('h1', null, siteName + ' — Media Artist, Seoul'));
+    if (DATA.siteTagline) sec.appendChild(el('p', null, DATA.siteTagline));
+    var ab = DATA.about || {};
+    paragraphs(ab.statement || ab.text).forEach(function (p) { sec.appendChild(el('p', null, p)); });
+    paragraphs(ab.bio).forEach(function (p) { sec.appendChild(el('p', null, p)); });
+    [['Works', 'w', DATA.works], ['Research', 's', DATA.studies]].forEach(function (grp) {
+      if (!grp[2] || !grp[2].length) return;
+      sec.appendChild(el('h2', null, grp[0]));
+      grp[2].forEach(function (it) {
+        var art = el('article');
+        var h = el('h3');
+        var a = el('a', null, it.title || '');
+        a.href = '#' + grp[1] + '/' + encodeURIComponent(it.id);
+        h.appendChild(a);
+        art.appendChild(h);
+        var meta = [it.year, it.medium, listOf(it.tools).join(', '), listOf(it.keywords).join(', ')].filter(Boolean).join(' · ');
+        if (meta) art.appendChild(el('p', null, meta));
+        if (it.description) art.appendChild(el('p', null, it.description));
+        sec.appendChild(art);
+      });
+    });
+    (DATA.contact || []).forEach(function (c) {
+      sec.appendChild(el('p', null, (c.label ? c.label + ': ' : '') + (c.value || '')));
+    });
+    document.body.appendChild(sec);
+
+    /* 작품 목록 JSON-LD — data.js 에서 만들어지니 낡을 수 없다 */
+    var canon = document.querySelector('link[rel="canonical"]');
+    var SITE = (canon && canon.href) || (location.origin + '/');
+    var ld = {
+      '@context': 'https://schema.org', '@type': 'ItemList', '@id': SITE + '#works', name: 'Works',
+      itemListElement: (DATA.works || []).map(function (w, i) {
+        var item = {
+          '@type': 'VisualArtwork', '@id': SITE + '#w/' + encodeURIComponent(w.id),
+          url: SITE + '#w/' + encodeURIComponent(w.id),
+          name: w.title,
+          creator: { '@id': SITE + '#person' }
+        };
+        if (w.year) item.dateCreated = w.year;
+        if (w.description) item.description = w.description;
+        if (w.medium) item.artMedium = w.medium;
+        var img = firstImage(w);
+        if (img) item.image = SITE + img;
+        return { '@type': 'ListItem', position: i + 1, item: item };
+      })
+    };
+    var s = document.createElement('script');
+    s.type = 'application/ld+json';
+    s.textContent = JSON.stringify(ld);
+    document.head.appendChild(s);
+  }
+
   /* ---------- detail overlay ---------- */
 
   function findItem(kind, id) {
@@ -435,11 +625,43 @@
     if (head) head.inert = on;
   }
 
-  function openDetail(item) {
+  function metaRow(label, valueNode) {
+    if (valueNode == null || valueNode === '') return null;
+    var r = el('div', 'meta-row');
+    r.appendChild(el('span', 'meta-label', label));
+    var v = el('span', 'meta-value');
+    if (typeof valueNode === 'string') v.textContent = valueNode;
+    else v.appendChild(valueNode);
+    r.appendChild(v);
+    return r;
+  }
+
+  function linkList(pairs) {
+    /* [{label, href}] → "a · a · a" */
+    var frag = document.createDocumentFragment();
+    pairs.forEach(function (p, i) {
+      if (i) frag.appendChild(document.createTextNode(' · '));
+      var a = el('a', null, p.label);
+      a.href = p.href;
+      frag.appendChild(a);
+    });
+    return frag;
+  }
+
+  /* 작품 → 이 작품이 속한 연구 (studies[].relatedWorks 를 훑는다 — 진실은 한 곳에) */
+  function studiesOfWork(id) {
+    return (DATA.studies || []).filter(function (s) {
+      return listOf(s.relatedWorks).indexOf(id) >= 0;
+    });
+  }
+
+  function openDetail(item, kind) {
     hideLabel();
     disposeViewers();
     overlayTitle.textContent = item.title || '';
-    overlayTitle.classList.toggle('ko', /[가-힣]/.test(item.title || ''));
+    var koTitle = /[가-힣]/.test(item.title || '');
+    overlayTitle.classList.toggle('ko', koTitle);
+    overlayTitle.lang = koTitle ? 'ko' : '';
     overlayYear.textContent = item.year || '';
     overlayBody.textContent = '';
     overlayBody.scrollTop = 0;
@@ -459,7 +681,7 @@
       } else if (t === 'model') {
         var box = el('div', 'viewer3d');
         wrap.appendChild(box);
-        wrap.appendChild(el('p', 'viewer3d-hint', '드래그로 회전 · 휠로 확대'));
+        wrap.appendChild(el('p', 'viewer3d-hint', 'Drag to rotate · Scroll to zoom'));
         mountModel(box, m.src);
       } else if (t === 'embed') {
         var ifr = document.createElement('iframe');
@@ -480,8 +702,55 @@
       overlayBody.appendChild(wrap);
     });
 
+    /* 톰스톤 — 비어 있는 줄은 그리지 않는다 (가짜 없음) */
+    var meta = el('div', 'detail-meta');
+    var rows = [];
+    if (kind === 's') {
+      rows.push(metaRow('Status', STATUS_LABELS[statusOf(item)]));   // 기간은 머리글의 연도가 이미 말한다
+      rows.push(metaRow('Keywords', listOf(item.keywords).join(' · ')));
+      var rel = listOf(item.relatedWorks).map(function (id) { return findItem('w', id); }).filter(Boolean);
+      if (rel.length) {
+        rows.push(metaRow('Works', linkList(rel.map(function (w) {
+          return { label: w.title + (w.year ? ' (' + w.year + ')' : ''), href: '#w/' + encodeURIComponent(w.id) };
+        }))));
+      }
+    } else {
+      rows.push(metaRow('Medium', item.medium || ''));
+      rows.push(metaRow('Duration', item.duration || ''));
+      rows.push(metaRow('Format', item.format || ''));
+      rows.push(metaRow('Role', item.role || ''));
+      rows.push(metaRow('Tools', listOf(item.tools).join(', ')));
+      rows.push(metaRow('Credits', item.credits || ''));
+      /* 전시 이력은 한 줄 = 한 항목 (장소, 도시 처럼 쉼표를 품는다) */
+      var ex = Array.isArray(item.exhibitions) ? item.exhibitions
+        : String(item.exhibitions || '').split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+      ex.forEach(function (x, i) {
+        var text = typeof x === 'string' ? x : [x.year, x.venue, x.city].filter(Boolean).join(' — ');
+        rows.push(metaRow(i === 0 ? 'Exhibited' : '', text));
+      });
+      var themes = listOf(item.themes).map(function (k) { return THEME_LABELS[k] || k; });
+      rows.push(metaRow('Themes', themes.join(', ')));
+      var partOf = studiesOfWork(item.id);
+      if (partOf.length) {
+        rows.push(metaRow('Research', linkList(partOf.map(function (s) {
+          return { label: s.title, href: '#s/' + encodeURIComponent(s.id) };
+        }))));
+      }
+    }
+    rows = rows.filter(Boolean);
+    if (rows.length) {
+      rows.forEach(function (r) { meta.appendChild(r); });
+      overlayBody.appendChild(meta);
+    }
+
     if (item.description) {
+      overlayBody.appendChild(el('h2', 'detail-heading', kind === 's' ? 'Abstract' : 'Statement'));
       overlayBody.appendChild(el('div', 'detail-desc', item.description));
+    }
+    if (item.descriptionKo) {
+      var ko = el('div', 'detail-desc ko', item.descriptionKo);
+      ko.lang = 'ko';
+      overlayBody.appendChild(ko);
     }
     if (item.links && item.links.length) {
       var links = el('div', 'detail-links');
@@ -493,10 +762,13 @@
         a.rel = 'noopener';
         links.appendChild(a);
       });
-      overlayBody.appendChild(links);
+      if (links.childNodes.length) {
+        overlayBody.appendChild(el('h2', 'detail-heading', 'Related'));
+        overlayBody.appendChild(links);
+      }
     }
 
-    lastFocus = document.activeElement;
+    if (overlay.hidden) lastFocus = document.activeElement;   // 오버레이 안에서 다른 항목으로 건너가도 돌아갈 자리는 처음 것
     overlay.hidden = false;
     setInert(true);   // 오버레이가 열려 있는 동안 뒤 페이지는 잠긴다 (Tab이 새지 않도록)
     requestAnimationFrame(function () { overlay.classList.add('open'); });
@@ -509,17 +781,22 @@
     overlay.classList.remove('open');
     disposeViewers();
     setInert(false);
-    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    /* 초점은 열었던 자리로 — 그 자리가 사라졌거나 숨겨졌으면 활성 메뉴로 */
+    var back = (lastFocus && lastFocus !== document.body && lastFocus.isConnected && !lastFocus.closest('[hidden]'))
+      ? lastFocus : document.querySelector('.side-nav a.active');
+    if (back && back.focus) back.focus();
     /* 퇴장 모션(0.3s)이 끝난 뒤에 숨긴다 — 진입만 있고 퇴장이 스냅이면 값싸 보인다 */
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var done = false;
     function finish() {
       if (done) return;
       done = true;
+      overlay.removeEventListener('transitionend', onEnd);
       if (!overlay.classList.contains('open')) overlay.hidden = true;
     }
+    function onEnd(e) { if (e.target === overlay) finish(); }   // 자식(닫기 버튼)의 전환이 올라와 끊지 않게
     if (reduce || !wasOpen) { finish(); return; }
-    overlay.addEventListener('transitionend', finish, { once: true });
+    overlay.addEventListener('transitionend', onEnd);
     setTimeout(finish, 400);
   }
 
@@ -529,12 +806,12 @@
     ensureThree().then(function () {
       if (!box.isConnected) return;
       var dispose = window.Viewer3D.mount(box, src, function onReady(err) {
-        if (err) { status.textContent = '모델을 불러오지 못했습니다'; }
+        if (err) { status.textContent = 'Could not load the model'; }
         else if (status.parentNode) { status.parentNode.removeChild(status); }
       });
       activeViewers.push(dispose);
     }).catch(function (e) {
-      status.textContent = '3D 뷰어 오류: ' + ((e && e.message) || '라이브러리 로드 실패');
+      status.textContent = '3D viewer error: ' + ((e && e.message) || 'library failed to load');
       if (window.console && console.error) console.error('[viewer3d]', e);
     });
   }
@@ -598,13 +875,16 @@
   }
 
   function route() {
-    var h = decodeURIComponent(location.hash.replace(/^#/, '')) || 'home';
+    var h;
+    try { h = decodeURIComponent(location.hash.slice(1)); } catch (e) { h = ''; }   // 깨진 공유 링크에도 화면은 뜬다
+    h = h || 'home';
     var m = /^([ws])\/(.+)$/.exec(h);
     if (m) {
       var item = findItem(m[1], m[2]);
       if (item) {
-        setSection(m[1] === 's' ? 'studies' : 'works');
-        openDetail(item);
+        /* 오버레이 안에서 건너뛴 링크면 뒤 방은 그대로 — 닫으면 출발한 방으로 돌아간다 */
+        if (overlay.hidden) setSection(m[1] === 's' ? 'studies' : 'works');
+        openDetail(item, m[1]);
         return;
       }
       location.hash = 'works';
@@ -623,5 +903,6 @@
   buildStudies();
   buildAbout();
   buildContact();
+  buildIndex();
   route();
 })();

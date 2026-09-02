@@ -29,8 +29,17 @@
     { key: 'heritage', label: 'Cultural Heritage',     src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
     { key: 'media',    label: 'Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
     { key: 'xr',       label: 'XR',                    src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
-    { key: 'data',     label: 'Data Analyzing',        src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
+    { key: 'data',     label: 'Data Analysis',         src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
   ];
+
+  /* 이 주제(key)에 속한 작품 제목들 — data.js의 works[].themes 로 연결 (컬렉션의 평면도) */
+  function worksOfTheme(key) {
+    var works = (window.SITE_DATA && window.SITE_DATA.works) || [];
+    return works.filter(function (w) {
+      var t = Array.isArray(w.themes) ? w.themes : String(w.themes || '').split(',');
+      return w.title && t.map(function (s) { return String(s).trim(); }).indexOf(key) >= 0;
+    }).map(function (w) { return w.title; }).join(' · ');
+  }
   /* 네 문양은 같은 크기 — 위계 없이 대등하게 */
   var SCALES = [1.0, 1.0, 1.0, 1.0];
   var MAX_SCALE = Math.max.apply(null, SCALES);
@@ -42,7 +51,8 @@
   var images = [];      // 로드된 문양 이미지
   var damaskImg = null; // 배경 다마스크 부조 (벽지처럼 아주 옅게 깔린다)
   var placed = [];      // 현재 배치 [{x, y, size}] (CSS px) — 리사이즈 시 재분산
-  var labelEl = null;
+  var labelEl = null, labelMain = null, labelWorks = null;
+  var labelIdx = -1;    // 현재 라벨이 가리키는 문양
   var rescatterTimer = null;
 
   var dpr = 1;
@@ -291,6 +301,11 @@
     if (labelEl || !canvas) return;
     labelEl = document.createElement('div');
     labelEl.className = 'home-label';
+    labelMain = document.createElement('span');
+    labelWorks = document.createElement('span');
+    labelWorks.className = 'home-label-works';
+    labelEl.appendChild(labelMain);
+    labelEl.appendChild(labelWorks);
     (canvas.parentNode || document.body).appendChild(labelEl);
   }
 
@@ -304,16 +319,21 @@
     var p = placed[best];
     var show = best >= 0 && ampV > 0.25 && bestD < p.size * FX.LABEL_RANGE;
     if (show) {
-      if (labelEl.textContent !== MOTIFS[best].label) {
-        labelEl.textContent = MOTIFS[best].label;
-        labelEl.classList.toggle('ko', /[가-힣]/.test(MOTIFS[best].label));
+      if (labelIdx !== best) {
+        labelIdx = best;
+        labelMain.textContent = MOTIFS[best].label;
+        labelWorks.textContent = worksOfTheme(MOTIFS[best].key);
+        var isKo = /[가-힣]/.test(MOTIFS[best].label);
+        labelEl.classList.toggle('ko', isKo);
+        labelEl.lang = isKo ? 'ko' : '';
       }
-      // 커서 끝을 그대로 따라다닌다 (화면 밖으로 나가지 않게만 보정)
+      // 커서를 따라다닌다 — 두 줄 라벨이 화면 밖·바닥의 태그라인 띠(100px) 위로 나가지 않게만 보정
       var w = canvas.clientWidth, h = canvas.clientHeight;
-      var lw = labelEl.offsetWidth || 140;
-      var x = cssX + 18, y = cssY + 26;
-      if (x + lw > w - 10) x = cssX - lw - 16;
-      if (y > h - 32) y = cssY - 34;
+      var lw = labelEl.offsetWidth || 320;
+      var lh = labelEl.offsetHeight || 50;
+      var x = cssX + 24, y = cssY + 34;
+      if (x + lw > w - 16) x = Math.max(16, cssX - lw - 20);
+      if (y + lh > h - 100) y = cssY - lh - 20;
       labelEl.style.left = x + 'px';
       labelEl.style.top = y + 'px';
       labelEl.classList.add('on');

@@ -1,23 +1,84 @@
 <!DOCTYPE html>
 <!-- deployed via GitHub → Netlify auto-deploy -->
-<html lang="ko">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOYEON LEE — Portfolio</title>
-  <meta name="description" content="Interactive media art, cultural heritage restoration, research portfolio">
+  <title>Doyeon Lee (이도연) — Media Artist, Seoul · Portfolio</title>
+  <meta name="description" content="Doyeon Lee (이도연), media artist in Seoul: Korean material heritage re-read with Unreal Engine and generative AI, moving toward interactive media and XR.">
+  <link rel="canonical" href="https://doyeonleeportfolio.netlify.app/">
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+  <!-- Google Search Console 인증 태그: 콘솔이 주는 content 값을 붙여 넣은 뒤 배포 (docs/사용법.md §8) -->
+  <!-- <meta name="google-site-verification" content="PASTE_VALUE_HERE"> -->
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Doyeon Lee — Portfolio">
+  <meta property="og:url" content="https://doyeonleeportfolio.netlify.app/">
+  <meta property="og:title" content="Doyeon Lee (이도연) — Media Artist, Seoul">
+  <meta property="og:description" content="Media art with Unreal Engine, generative AI and interactive media, re-reading Korean material heritage. Works: Time of Materiality, Osulloc Tea Incense, Ethereal.">
+  <meta property="og:image" content="https://doyeonleeportfolio.netlify.app/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Time of Materiality — video still: Tteoljam materials reinterpreted through generative AI">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ko_KR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Doyeon Lee (이도연) — Media Artist, Seoul">
+  <meta name="twitter:description" content="Media art with Unreal Engine, generative AI and interactive media, re-reading Korean material heritage.">
+  <meta name="twitter:image" content="https://doyeonleeportfolio.netlify.app/assets/og.jpg">
+
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="css/style.css">
   <script src="content/data.js"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://doyeonleeportfolio.netlify.app/#website",
+        "url": "https://doyeonleeportfolio.netlify.app/",
+        "name": "Doyeon Lee — Portfolio",
+        "inLanguage": ["en", "ko"],
+        "about": { "@id": "https://doyeonleeportfolio.netlify.app/#person" },
+        "publisher": { "@id": "https://doyeonleeportfolio.netlify.app/#person" }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://doyeonleeportfolio.netlify.app/#person",
+        "name": "Doyeon Lee",
+        "alternateName": ["이도연", "Lee Doyeon"],
+        "givenName": "Doyeon",
+        "familyName": "Lee",
+        "jobTitle": "Media Artist",
+        "description": "Media artist based in Seoul, South Korea, currently an undergraduate at Duksung Women's University. Works with Unreal Engine, generative AI and interactive media, re-reading Korean material heritage as technical images.",
+        "url": "https://doyeonleeportfolio.netlify.app/",
+        "homeLocation": {
+          "@type": "Place",
+          "address": { "@type": "PostalAddress", "addressLocality": "Seoul", "addressCountry": "KR" }
+        },
+        "affiliation": {
+          "@type": "EducationalOrganization",
+          "name": "Duksung Women's University",
+          "sameAs": "https://www.duksung.ac.kr/"
+        },
+        "knowsAbout": ["Media art", "Interactive media art", "Extended reality (XR)", "Cultural heritage", "Generative AI", "Unreal Engine", "Data analysis"],
+        "knowsLanguage": ["ko", "en"],
+        "sameAs": ["https://www.instagram.com/eh_dldy/"],
+        "mainEntityOfPage": { "@id": "https://doyeonleeportfolio.netlify.app/#website" }
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
   <header class="site-header">
     <a href="#home" id="siteName" class="site-name">PORTFOLIO</a>
   </header>
 
-  <nav class="side-nav" aria-label="메뉴">
+  <nav class="side-nav" aria-label="Menu">
     <a href="#works"   data-view="works">Works</a>
-    <a href="#studies" data-view="studies">Studies</a>
+    <a href="#studies" data-view="studies">Research</a>
     <a href="#about"   data-view="about">About</a>
     <a href="#contact" data-view="contact">Contact</a>
   </nav>
@@ -25,6 +86,7 @@
   <main id="stage">
     <section id="view-home" class="view view-home" hidden>
       <canvas id="homeCanvas"></canvas>
+      <p id="homeTagline" class="home-tagline"></p>
     </section>
     <section id="view-works"   class="view view-works"   hidden></section>
     <section id="view-studies" class="view view-studies" hidden></section>
@@ -48,13 +110,17 @@
         <h1 id="detailTitle" class="detail-title"></h1>
         <span id="detailYear" class="detail-year"></span>
       </div>
-      <button id="detailClose" class="detail-close" aria-label="닫기">Close</button>
+      <button id="detailClose" class="detail-close" aria-label="Close">Close</button>
     </div>
     <div id="detailBody" class="detail-body"></div>
   </div>
 
   <noscript>
-    <p style="padding:120px 40px;font-size:14px;">이 사이트는 JavaScript가 필요합니다. JavaScript를 켜 주세요.</p>
+    <section style="padding:120px 40px;max-width:640px;font-size:15px;line-height:1.9">
+      <h1 style="font-size:13px;font-weight:500;letter-spacing:var(--ls-display);text-transform:uppercase">Doyeon Lee — <span lang="ko">이도연</span></h1>
+      <p>Media artist based in Seoul, South Korea, working with Unreal Engine, generative AI and interactive media. The works on this site need JavaScript to play.</p>
+      <p><a href="mailto:doyeon0070@duksung.ac.kr">doyeon0070@duksung.ac.kr</a> · <a href="https://www.instagram.com/eh_dldy/" rel="me">Instagram</a></p>
+    </section>
   </noscript>
 
   <script src="js/viewer3d.js"></script>
