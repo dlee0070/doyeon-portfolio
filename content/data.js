@@ -147,7 +147,7 @@ window.SITE_DATA = {
       "year": "2026",
       "status": "ongoing",
       "keywords": ["Visual Weight", "Perceptual Balance", "Computational Video Analysis", "Cinemetrics"],
-      "summary": "Extends visual-weight analysis from still images to video: a darkness-weighted barycenter tracked across 120 tokusatsu episodes shows the two franchises diverging by temporal scale. Manuscript in preparation.",
+      "summary": "Tracks a darkness-weighted visual barycenter through every frame of 120 tokusatsu episodes. The two franchises diverge by temporal scale — Super Sentai redistributes weight faster across episodes, Kamen Rider ranges wider within action scenes. Manuscript in preparation.",
       "cover": "content/media/screen-composition-in-motion/fig-effect-sizes.png",
       "media": [
         {
@@ -161,7 +161,7 @@ window.SITE_DATA = {
           "caption": "Episode-scale reallocation speed vs. action-scene horizontal range"
         }
       ],
-      "description": "This study extends visual-balance measurement from still images to long-form video. For every frame of 120 tokusatsu episodes — six series spanning Japan's Showa, Heisei and Reiwa eras — it computes a darkness-weighted barycenter from luma values and tracks its position and movement at two temporal scales, from full episodes down to annotated action scenes.\n\nThe two franchises differ by time scale rather than overall dynamism: Super Sentai reallocates the barycenter faster across full episodes, whereas Kamen Rider covers a wider horizontal range within main action scenes — the same metric yields opposite readings depending on the analysis unit. Manuscript in preparation.",
+      "description": "This study extends visual-balance measurement from still images to long-form video. For every frame of 120 tokusatsu episodes — six series spanning Japan's Showa, Heisei and Reiwa eras — it computes a darkness-weighted barycenter from luma values and tracks how that point moves at two temporal scales: across full episodes, and within annotated action scenes.\n\nThe two franchises turn out to differ by time scale rather than by overall dynamism. Super Sentai reallocates the barycenter faster across full episodes; Kamen Rider covers a wider horizontal range within its main action scenes. The same metric yields opposite readings depending on the unit of analysis — which is itself the finding. Manuscript in preparation.",
       "relatedWorks": [],
       "links": []
     },
@@ -171,7 +171,7 @@ window.SITE_DATA = {
       "year": "2026–",
       "status": "ongoing",
       "keywords": ["Visual Saliency", "Gothic Architecture", "Computational Aesthetics", "Rib Vaults"],
-      "summary": "Does architectural structure measurably design visual attention? Saliency maps of Gothic rib-vaulted interiors are read as terrain, partitioned into attention watersheds, and probed with placebo-controlled line interventions.",
+      "summary": "Reads saliency maps of Gothic rib-vaulted interiors as terrain: streamlines trace where predicted attention flows, watersheds divide where it pools. A placebo-controlled experiment tests whether the converging lines of Gothic structure measurably enlarge a target's basin.",
       "cover": "content/media/gazeflow/gazeflow-overlay.jpg",
       "media": [
         {
@@ -190,7 +190,7 @@ window.SITE_DATA = {
       "year": "2026–",
       "status": "ongoing",
       "keywords": ["Kente", "Formal Grammar", "Generative Art", "Cross-Cultural Translation", "Computational Craft"],
-      "summary": "Can the compositional rules of Asante kente cloth be written as a testable formal grammar — and can that grammar weave the meanings of Korean Hanja given names into new patterns, as translation rather than appropriation?",
+      "summary": "Writes the compositional rules of Asante kente cloth as a testable formal grammar, built from a transcribed corpus and Ghanaian scholarship. A companion artwork weaves the meanings of Korean Hanja given names into new patterns — translation, never equivalence.",
       "cover": "content/media/woven-names/kente-anatomy.svg",
       "media": [
         {
@@ -204,7 +204,7 @@ window.SITE_DATA = {
           "caption": "From corpus transcription to grammar to generated pattern — the study pipeline"
         }
       ],
-      "description": "This in-progress study transcribes a pilot corpus of vintage Asante-attributed kente cloths into discrete symbol sequences and hand-authors a stochastic parametric set grammar from published Ghanaian scholarship, calibrated on training cloths and evaluated against a sealed hold-out set. Early quantitative observations — strip-assembly phase patterns, frequency-versus-area divergence in Akan colour categories — are reported as corpus-relative and exploratory.\n\nA companion media-art system carries the grammar forward: visitors trace their Hanja given name, confirm its meaning, and receive a kente-grammar pattern card through a graded similarity matching that presents itself as translation, never equivalence. All cultural-meaning claims are restricted to cited Ghanaian sources. Unpublished, in progress.",
+      "description": "This study transcribes a pilot corpus of vintage Asante-attributed kente cloths into discrete symbol sequences, then writes a stochastic parametric grammar of their composition, grounded in published Ghanaian scholarship — calibrated on training cloths, evaluated against a sealed hold-out set. Early observations, such as strip-assembly phase patterns and the divergence between how often and how large Akan colour categories appear, are reported as corpus-relative and exploratory.\n\nA companion media-art system carries the grammar forward: a visitor traces their Hanja given name, confirms its meaning, and receives a pattern card woven by the grammar — a graded matching that presents itself as translation, never as equivalence. All cultural-meaning claims stay within cited Ghanaian sources. Unpublished, in progress.",
       "relatedWorks": [],
       "links": []
     }
