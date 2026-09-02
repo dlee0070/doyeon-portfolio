@@ -24,24 +24,29 @@
     STIR: 3.5          // 누른 채 있을 때 알갱이가 휘저어지는(섞이는) 세기
   };
 
-  /* 문양 4종과 주제 키워드 (Adinkra) */
+  /* 문양 5종과 주제 키워드 (Adinkra) */
   var MOTIFS = [
     { key: 'heritage', label: 'Cultural Heritage',     src: 'assets/pattern/adinkra-heritage.svg' },  // Mate Masie
     { key: 'media',    label: 'Interactive Media Art', src: 'assets/pattern/adinkra-media.svg' },     // Dame-Dame
     { key: 'xr',       label: 'XR',                    src: 'assets/pattern/adinkra-xr.svg' },        // Abode Santann
-    { key: 'data',     label: 'Data Analysis',         src: 'assets/pattern/adinkra-data.svg' }       // Nea Onnim No Sua A, Ohu
+    { key: 'data',     label: 'Data Analysis',         src: 'assets/pattern/adinkra-data.svg' },      // Nea Onnim No Sua A, Ohu
+    { key: 'moving',   label: 'Moving Image',          src: 'assets/pattern/adinkra-art.svg' }        // 예술 (소유자 제공 문양)
   ];
 
-  /* 이 주제(key)에 속한 작품 제목들 — data.js의 works[].themes 로 연결 (컬렉션의 평면도) */
+  /* 이 주제(key)에 속한 작품·연구 제목들 — works[].themes / studies[].themes 로 연결 (컬렉션의 평면도) */
   function worksOfTheme(key) {
-    var works = (window.SITE_DATA && window.SITE_DATA.works) || [];
-    return works.filter(function (w) {
+    var d = window.SITE_DATA || {};
+    var all = (d.works || []).concat(d.studies || []);
+    return all.filter(function (w) {
       var t = Array.isArray(w.themes) ? w.themes : String(w.themes || '').split(',');
       return w.title && t.map(function (s) { return String(s).trim(); }).indexOf(key) >= 0;
-    }).map(function (w) { return w.title; }).join(' · ');
+    }).map(function (w) {
+      /* 연구는 부제 앞까지만 — 라벨 한 줄이 벽화가 되지 않게 */
+      return String(w.title).split(':')[0].split('—')[0].trim();
+    }).join(' · ');
   }
-  /* 네 문양은 같은 크기 — 위계 없이 대등하게 */
-  var SCALES = [1.0, 1.0, 1.0, 1.0];
+  /* 다섯 문양은 같은 크기 — 위계 없이 대등하게 */
+  var SCALES = [1.0, 1.0, 1.0, 1.0, 1.0];
   var MAX_SCALE = Math.max.apply(null, SCALES);
 
   var canvas = null, gl = null, prog = null, quad = null, texHeight = null;
@@ -210,7 +215,7 @@
     var leftSafe = narrow ? 0 : 200;       // 데스크톱: 내비 축(200px) 오른쪽 — 콘텐츠 페이지와 같은 축
     var pad = 14;
 
-    // 2x2 지터 격자 — 어떤 화면 비율에서도 네 구역에 하나씩 고르게
+    // 퀸컹스(quincunx) — 네 모서리 + 중앙. 다섯 문양이 주사위 5처럼 앉는다
     var usableH = h - topSafe - pad;
     var usableW = w - leftSafe - pad;
     var stagger = (w > h ? 0.05 : 0.025) * usableH;   // 열끼리 살짝 어긋나게 (유기적 분산)
@@ -218,12 +223,16 @@
     for (var ci = 0; ci < 2; ci++) {
       for (var ri = 0; ri < 2; ri++) {
         cells.push({
-          x: leftSafe + usableW * (ci === 0 ? 0.26 : 0.74) + (Math.random() - 0.5) * usableW * 0.05,
-          y: topSafe + usableH * (ri === 0 ? 0.27 : 0.70) +
+          x: leftSafe + usableW * (ci === 0 ? 0.22 : 0.78) + (Math.random() - 0.5) * usableW * 0.04,
+          y: topSafe + usableH * (ri === 0 ? 0.24 : 0.73) +
              (ci === 0 ? -1 : 1) * stagger + (Math.random() - 0.5) * usableH * 0.04
         });
       }
     }
+    cells.push({
+      x: leftSafe + usableW * 0.5 + (Math.random() - 0.5) * usableW * 0.04,
+      y: topSafe + usableH * 0.485 + (Math.random() - 0.5) * usableH * 0.04
+    });
     // 문양 ↔ 자리 무작위 배정 (접속할 때마다 다른 배치)
     for (var i = cells.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));

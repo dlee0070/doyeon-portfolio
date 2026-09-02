@@ -13,7 +13,8 @@
     heritage: 'Cultural Heritage',
     media: 'Interactive Media Art',
     xr: 'XR',
-    data: 'Data Analysis'
+    data: 'Data Analysis',
+    moving: 'Moving Image'
   };
   var STATUS_LABELS = { ongoing: 'Ongoing', proposed: 'Proposed', completed: 'Completed', past: 'Completed' };
   var STATUS_ORDER = { ongoing: 0, proposed: 1, completed: 2, past: 2 };
@@ -405,7 +406,9 @@
 
         var main = el('div', 'study-main');
         main.appendChild(el('div', 'study-title', s.title || ''));
-        var sub = [STATUS_LABELS[statusOf(s)]].concat(listOf(s.keywords)).join(' · ');
+        /* 상태 · 홈의 큰 주제 키워드 — 세부 키워드는 상세 화면에 */
+        var themeNames = listOf(s.themes).map(function (k) { return THEME_LABELS[k] || k; });
+        var sub = [STATUS_LABELS[statusOf(s)]].concat(themeNames.length ? themeNames : listOf(s.keywords)).join(' · ');
         main.appendChild(el('div', 'study-sub', sub));
         if (s.summary) main.appendChild(el('p', 'study-summary', s.summary));
         row.appendChild(main);
@@ -707,6 +710,8 @@
     var rows = [];
     if (kind === 's') {
       rows.push(metaRow('Status', STATUS_LABELS[statusOf(item)]));   // 기간은 머리글의 연도가 이미 말한다
+      var sThemes = listOf(item.themes).map(function (k) { return THEME_LABELS[k] || k; });
+      rows.push(metaRow('Themes', sThemes.join(', ')));
       rows.push(metaRow('Keywords', listOf(item.keywords).join(' · ')));
       var rel = listOf(item.relatedWorks).map(function (id) { return findItem('w', id); }).filter(Boolean);
       if (rel.length) {
