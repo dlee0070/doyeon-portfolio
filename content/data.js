@@ -2,8 +2,8 @@ window.SITE_DATA = {
   "siteName": "DOYEON LEE",
   "siteTagline": "Student in Seoul working between Korean material heritage, generative image and interactive space.",
   "about": {
-    "text": "I work with Korean objects or any other cultural heritage and ask what happens to it when it is re-encoded as a technical image. \n\nMy current pieces are single-channel videos; the research beside them points toward interactive and XR encounters, where the viewer's body rather than the edit decides the time of the object. I am interested in heritage not as documentation but as a material that can still be worked.",
-    "statement": "I work with Korean objects or any other cultural heritage and ask what happens to it when it is re-encoded as a technical image. \n\nMy current pieces are single-channel videos; the research beside them points toward interactive and XR encounters, where the viewer's body rather than the edit decides the time of the object. I am interested in heritage not as documentation but as a material that can still be worked.",
+    "text": "I am an researcher dedicated to preserving cultural heritage through the lens of visual arts. I believe that new media is not just a digital canvas, but a vital tool for safeguarding historical artifacts and narratives for future generations. By merging immersive technologies with historical research, I create interactive experiences that breathe new life into our shared past.",
+    "statement": "I am an researcher dedicated to preserving cultural heritage through the lens of visual arts. I believe that new media is not just a digital canvas, but a vital tool for safeguarding historical artifacts and narratives for future generations. By merging immersive technologies with historical research, I create interactive experiences that breathe new life into our shared past.",
     "bio": "",
     "directions": [
       "Interactive Installation",
