@@ -423,8 +423,8 @@
       });
     }
     if (hasList || !DATA.studiesGif) v.appendChild(list);
-    /* GIF 는 목록이 비어 있을 때만 — 연구가 채워지면 방은 연구로 말한다 */
-    if (!hasList && DATA.studiesGif) {
+    /* GIF 는 목록 아래에 늘 걸린다 (소유자 요청 — 방의 볼거리) */
+    if (DATA.studiesGif) {
       var gif = el('img', 'studies-gif');
       gif.src = DATA.studiesGif;
       gif.alt = '';
