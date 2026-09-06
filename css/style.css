@@ -264,23 +264,6 @@ body.on-home .site-header { background: transparent; }
 }
 .home-sat.on { opacity: 0.62; }
 
-/* 포지셔닝 한 줄 — 기둥축(200px) 위, 바닥에서 40px. 홈에서만 */
-.home-tagline {
-  position: fixed;
-  left: var(--nav-w);
-  bottom: 40px;
-  z-index: 2;
-  max-width: 480px;
-  font-size: 12px;
-  letter-spacing: var(--ls-data);
-  line-height: 1.6;
-  opacity: 0;
-  pointer-events: none;
-  animation: tagline-in 0.6s var(--ease) 0.2s forwards;
-}
-.home-tagline:empty { display: none; }
-@keyframes tagline-in { to { opacity: var(--muted); } }
-
 /* ---------- works strip ---------- */
 
 .view-works {
@@ -889,7 +872,6 @@ body.on-home .site-header { background: transparent; }
 
   .home-label { font-size: 18px; letter-spacing: var(--ls-label); }
   .home-sat { font-size: 13px; }
-  .home-tagline { left: var(--pad-x); bottom: 24px; max-width: calc(100% - 40px); }
   .study-thumb { display: none; }
   .study-year { width: 72px; }
   .meta-label { width: 84px; }

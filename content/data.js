@@ -39,8 +39,13 @@ window.SITE_DATA = {
     },
     {
       "label": "Linkedin",
-      "value": "linkedin.com/in/doyeon-lee-8a314b395?utm_source=share_via&utm_content=profile&utm_medium=member_ios",
-      "href": "linkedin.com/in/doyeon-lee-8a314b395?utm_source=share_via&utm_content=profile&utm_medium=member_ios"
+      "value": "https://www.linkedin.com/in/doyeon-lee-8a314b395/",
+      "href": "https://www.linkedin.com/in/doyeon-lee-8a314b395"
+    },
+    {
+      "label": "Youtube",
+      "value": "https://www.youtube.com/@DoyeonLee-q6q",
+      "href": "https://www.youtube.com/@DoyeonLee-q6q"
     }
   ],
   "works": [

@@ -116,9 +116,6 @@
   document.getElementById('siteName').textContent = siteName;
   // document.title 은 index.html 의 SEO 제목을 그대로 둔다 (검색엔진은 렌더된 제목을 읽는다)
 
-  var tagline = document.getElementById('homeTagline');
-  if (tagline) tagline.textContent = DATA.siteTagline || '';
-
   /* ---------- works strip ---------- */
 
   function buildStrip() {
