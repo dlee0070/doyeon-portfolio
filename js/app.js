@@ -167,7 +167,8 @@
           if (!isFinite(d) || d <= 0) return;
           hlStart = (hv.start == null || hv.start >= d) ? d / 2 : Math.min(hv.start, Math.max(0, d - 0.5));
           hlEnd = Math.min(hlStart + hv.len, d);
-          if (a.classList.contains('previewing')) vid.currentTime = hlStart;
+          /* 커버 없는 영상은 이 seek 이 곧 대표 프레임 — preload=metadata 만으로는 한 프레임도 안 그려진다 */
+          vid.currentTime = hlStart;
         });
         /* 하이라이트 구간만 — 반복이거나, 끝에서 멈추거나 */
         vid.addEventListener('timeupdate', function () {
@@ -195,7 +196,7 @@
         var leavePv = function () {
           a.classList.remove('previewing');
           vid.pause();
-          vid.currentTime = w.cover ? hlStart : 0; // 커버 없으면 첫 프레임이 대표이미지 역할
+          vid.currentTime = hlStart; // 정지 상태의 대표 프레임
         };
         if (hv.on) {
           a.addEventListener('mouseenter', enterPv);
