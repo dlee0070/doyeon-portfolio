@@ -853,8 +853,30 @@ body.on-home .site-header { background: transparent; }
 
   .strip { padding: 0 var(--pad-x); }
   .strip::before { left: 0; }
-  .strip-item { height: 44vh; }
+  /* 모바일 — 세로 화면에서 높이 기준으로 재면 16:9 작업의 가로가 화면 밖으로 나간다.
+     재는 기준을 폭으로 뒤집어 한 점이 항상 통째로 보이게 한다 */
+  .strip-item {
+    height: auto;
+    /* 세로 화면에선 화면 폭에, 가로 화면에선 높이 62vh 에 맞춘다 */
+    width: min(calc(100vw - var(--pad-x) * 2), calc(62vh * 16 / 9));
+  }
+  .strip-item img,
+  .strip-item video {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* 지연 로딩 이미지가 도착하기 전에도 자리를 잡아 둔다 — 없으면 높이 0 으로 접힌다 */
+    aspect-ratio: 16 / 9;
+    object-fit: contain;   /* 16:9 가 아닌 작업도 잘리거나 늘어나지 않는다 */
+  }
   .strip-progress { left: var(--pad-x); bottom: 24px; }
+
+  /* 데스크톱의 세로 리듬(4주기 오르내림)은 한 점씩 보는 모바일에선
+     어긋나게만 보인다 — 모두 걸이줄 위에 가지런히 걸린다 */
+  .strip-item:nth-child(4n+1),
+  .strip-item:nth-child(4n+2),
+  .strip-item:nth-child(4n+3),
+  .strip-item:nth-child(4n) { margin-top: 0; margin-bottom: 0; }
 
   .view-studies,
   .view-about,

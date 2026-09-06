@@ -19,7 +19,7 @@ window.SITE_DATA = {
       "Department of VR Convergence Engineering"
     ],
     "cvPdf": "",
-    "image": "content/media/about/kakaotalk-20260906-210517696.jpg"
+    "image": "content/media/about/profile.jpg"
   },
   "contact": [
     {
