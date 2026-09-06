@@ -2,8 +2,8 @@ window.SITE_DATA = {
   "siteName": "DOYEON LEE",
   "siteTagline": "Student in Seoul working between Korean material heritage, generative image and interactive space.",
   "about": {
-    "text": "I am an researcher dedicated to preserving cultural heritage through the lens of visual arts. I believe that new media is not just a digital canvas, but a vital tool for safeguarding historical artifacts and narratives for future generations. By merging immersive technologies with historical research, I create interactive experiences that breathe new life into our shared past.",
-    "statement": "I am an researcher dedicated to preserving cultural heritage through the lens of visual arts. I believe that new media is not just a digital canvas, but a vital tool for safeguarding historical artifacts and narratives for future generations. By merging immersive technologies with historical research, I create interactive experiences that breathe new life into our shared past.",
+    "text": "I am a researcher dedicated to preserving cultural heritage through the lens of visual arts. I believe that new media is not just a digital canvas, but a vital tool for safeguarding historical artifacts and narratives for future generations. By merging immersive technologies with historical research, I create interactive experiences that breathe new life into our shared past.",
+    "statement": "I am a researcher dedicated to preserving cultural heritage through the lens of visual arts. I believe that new media is not just a digital canvas, but a vital tool for safeguarding historical artifacts and narratives for future generations. By merging immersive technologies with historical research, I create interactive experiences that breathe new life into our shared past.",
     "bio": "",
     "directions": [
       "Interactive Installation",
@@ -19,7 +19,7 @@ window.SITE_DATA = {
       "Department of VR Convergence Engineering"
     ],
     "cvPdf": "",
-    "image": "content/media/about/증사-흑백2.jpg"
+    "image": "content/media/about/kakaotalk-20260906-210517696.jpg"
   },
   "contact": [
     {
