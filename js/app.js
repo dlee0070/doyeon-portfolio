@@ -167,8 +167,9 @@
           if (!isFinite(d) || d <= 0) return;
           hlStart = (hv.start == null || hv.start >= d) ? d / 2 : Math.min(hv.start, Math.max(0, d - 0.5));
           hlEnd = Math.min(hlStart + hv.len, d);
-          /* 커버 없는 영상은 이 seek 이 곧 대표 프레임 — preload=metadata 만으로는 한 프레임도 안 그려진다 */
-          vid.currentTime = hlStart;
+          /* 커버 없는 영상은 이 seek 이 곧 대표 프레임 — preload=metadata 만으로는 한 프레임도 안 그려진다.
+             커버가 있으면 영상이 그 뒤에 숨어 있으니 hover 전엔 굳이 받아오지 않는다 */
+          if (!w.cover || a.classList.contains('previewing')) vid.currentTime = hlStart;
         });
         /* 하이라이트 구간만 — 반복이거나, 끝에서 멈추거나 */
         vid.addEventListener('timeupdate', function () {
