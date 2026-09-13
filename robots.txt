@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://doyeonleeportfolio.netlify.app/sitemap.xml
+Sitemap: https://doyeonleeportfolio.github.io/sitemap.xml
