@@ -277,9 +277,12 @@
           }
           return;
         }
-        if (e.status === 401) { toast('로그인이 만료되었습니다 — 로그아웃 후 새 토큰으로 다시 로그인해 주세요'); return; }
-        if (e.status === 403 || e.status === 404) { toast('저장 권한이 없습니다 — 토큰의 Contents 권한이 Read and write 인지 확인해 주세요'); return; }
-        toast('저장 실패: ' + e.message);
+        var why = e.status === 401 ? '로그인이 만료되었습니다 — 로그아웃 후 새 토큰으로 다시 로그인해 주세요'
+          : e.status === 403 || e.status === 404 ? '저장 권한이 없습니다 — 토큰의 Contents 권한(Read and write)과 조직 승인을 확인해 주세요'
+          : '저장 실패';
+        toast(why);
+        /* 토스트는 금방 사라진다 — 이유는 상단 상태줄에 남긴다 */
+        saveStatus.textContent = why + ' · ' + e.message;
       });
   }
 
