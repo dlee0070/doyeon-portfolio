@@ -1055,13 +1055,28 @@
     if (!token) { showLogin(); return; }
     connect(token).catch(function (e) {
       if (e && e.handled) return;
-      showLogin(e.status === 401 ? '토큰이 만료되었거나 올바르지 않습니다 — 새로 만들어 붙여넣어 주세요' : '불러오기 실패: ' + e.message);
+      showLogin(loginError(e));
     });
+  }
+
+  function loginError(e) {
+    if (e.status === 401) return '토큰이 올바르지 않거나 만료되었습니다 — 새로 만들어 붙여넣어 주세요';
+    if (e.status === 403) return '이 토큰으로는 저장할 수 없습니다 — Resource owner 가 ' + GH.owner +
+      ' 인지, Contents 가 Read and write 인지, 조직 승인 대기(Pending)가 아닌지 확인해 주세요 · GitHub: ' + e.message;
+    if (e.status === 404) return '저장소를 찾을 수 없습니다 — 2번의 저장소 선택을 확인해 주세요';
+    return '로그인 실패: ' + e.message;
   }
 
   function connect(token) {
     var s = window.GitHubStore.create({ owner: GH.owner, repo: GH.repo, branch: GH.branch, token: token });
     return s.load().then(function (text) {
+      /* 공개 저장소라 읽기는 아무 토큰으로도 된다 — 저장 권한은 여기서 따로 확인 */
+      return s.canWrite().then(function () { return text; }, function (e) {
+        var err = new Error(e.message);
+        err.status = e.status === 401 ? 401 : e.status ? 403 : 0;   // 0 = 네트워크 오류 — 권한 문제로 오인하지 않게
+        throw err;
+      });
+    }).then(function (text) {
       store = s;
       storage('gh-token', token);
       addLogout();
@@ -1098,9 +1113,7 @@
       connect(t).catch(function (e) {
         go.disabled = false;
         if (e && e.handled) return;
-        err.textContent = e.status === 401 ? '토큰이 올바르지 않습니다'
-          : e.status === 404 ? '저장소를 찾을 수 없습니다 — 2번의 저장소 선택을 확인해 주세요'
-          : '로그인 실패: ' + e.message;
+        err.textContent = loginError(e);
       });
     }
     go.addEventListener('click', submit);

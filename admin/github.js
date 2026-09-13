@@ -139,7 +139,13 @@
       return attempt(true);
     }
 
-    return { load: load, commit: commit };
+    /* 로그인 때 쓰기 권한 확인 — 빈 blob 하나만 만든다. 커밋에 안 걸리고
+       .nojekyll 과 같은 객체라 저장소에는 아무 변화가 없다 */
+    function canWrite() {
+      return call('POST', '/git/blobs', { content: '', encoding: 'utf-8' });
+    }
+
+    return { load: load, commit: commit, canWrite: canWrite };
   }
 
   root.GitHubStore = { create: create, DATA_PATH: DATA_PATH };
