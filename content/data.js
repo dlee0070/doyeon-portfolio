@@ -432,33 +432,6 @@ window.SITE_DATA = {
       "description": "This study transcribes a pilot corpus of vintage Asante-attributed kente cloths into discrete symbol sequences, then writes a stochastic parametric grammar of their composition, grounded in published Ghanaian scholarship — calibrated on training cloths, evaluated against a sealed hold-out set. Early observations, such as strip-assembly phase patterns and the divergence between how often and how large Akan colour categories appear, are reported as corpus-relative and exploratory.\n\nA companion media-art system carries the grammar forward: a visitor traces their Hanja given name, confirms its meaning, and receives a pattern card woven by the grammar — a graded matching that presents itself as translation, never as equivalence. All cultural-meaning claims stay within cited Ghanaian sources. Unpublished, in progress.",
       "relatedWorks": [],
       "links": []
-    },
-    {
-      "id": "gazeflow",
-      "title": "GazeFlow — Watersheds of Attention in Gothic Architecture",
-      "year": "2026–",
-      "status": "ongoing",
-      "themes": [
-        "data"
-      ],
-      "keywords": [
-        "Visual Saliency",
-        "Gothic Architecture",
-        "Computational Aesthetics",
-        "Rib Vaults"
-      ],
-      "summary": "Reads saliency maps of Gothic rib-vaulted interiors as terrain: streamlines trace where predicted attention flows, watersheds divide where it pools. A placebo-controlled experiment tests whether the converging lines of Gothic structure measurably enlarge a target's basin.",
-      "cover": "content/media/gazeflow/gazeflow-overlay.jpg",
-      "media": [
-        {
-          "type": "image",
-          "src": "content/media/gazeflow/gazeflow-overlay.jpg",
-          "caption": "GazeFlow — attention streamlines and watershed basins over a synthetic nave scene"
-        }
-      ],
-      "description": "This research asks whether architectural structure measurably designs visual attention, taking Gothic rib-vaulted interiors as its case. A self-built Python instrument, GazeFlow, reads computational saliency maps as terrain: gradient streamlines trace where model-predicted attention flows, and watershed segmentation divides each image into the basins that pool it.\n\nThe ongoing experiment injects converging lines — the geometry Gothic builders trusted — and measures, against ink-matched placebo lines and across two independent saliency models, how far a target's attention basin actually grows. All claims concern model-predicted attention, not human eyes; the instrument is built and self-validated, and the confirmatory experiment is still ahead. Unpublished, in progress.",
-      "relatedWorks": [],
-      "links": []
     }
   ],
   "studiesGif": "content/media/studies/giphy.gif"
