@@ -402,7 +402,7 @@
     main.appendChild(field('상단에 표시되는 이름', input(DATA.siteName, function (v) { DATA.siteName = v; }), '예: DOYEON LEE'));
 
     main.appendChild(field('홈 화면 한 줄 소개 (영문)',
-      input(DATA.siteTagline, function (v) { DATA.siteTagline = v; }, 'Media artist in Seoul working between …'),
+      input(DATA.siteTagline, function (v) { DATA.siteTagline = v; }, 'Student in Seoul working between …'),
       '화면에는 보이지 않고 검색엔진(구글)만 읽는 소개 문장입니다. 이름·분야·도시가 들어가면 좋습니다.'));
 
     main.appendChild(field('About — Artist Statement (영문 권장)',
@@ -411,7 +411,7 @@
 
     main.appendChild(field('About — Biography (영문, 3인칭)',
       textarea(DATA.about.bio, 4, function (v) { DATA.about.bio = v; }),
-      '"Doyeon Lee is a media artist …" 처럼 3인칭 · 80단어 이내. 큐레이터·전시 도록이 그대로 가져다 쓰는 문단입니다.'));
+      '"Doyeon Lee is …" 처럼 3인칭 · 80단어 이내. 큐레이터·전시 도록이 그대로 가져다 쓰는 문단입니다.'));
 
     main.appendChild(field('연구 방향 키워드 (Directions)',
       input(joinList(DATA.about.directions), function (v) { DATA.about.directions = splitList(v); }, 'Interactive Installation, XR & Immersive Space, …'),
