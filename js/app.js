@@ -549,7 +549,7 @@
     var sec = el('section', 'site-index');
     sec.id = 'index';
     sec.hidden = true;   // display:none — 스크린리더는 중복을 건너뛰고, 검색엔진(모바일 우선)은 읽는다
-    sec.appendChild(el('h1', null, siteName + ' — Media Artist, Seoul'));
+    sec.appendChild(el('h1', null, siteName + ' Portfolio'));
     if (DATA.siteTagline) sec.appendChild(el('p', null, DATA.siteTagline));
     var ab = DATA.about || {};
     paragraphs(ab.statement || ab.text).forEach(function (p) { sec.appendChild(el('p', null, p)); });
