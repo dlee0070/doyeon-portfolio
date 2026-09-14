@@ -24,7 +24,7 @@ window.SITE_DATA = {
   "contact": [
     {
       "label": "Email",
-      "value": "doyeon0070@duksung.ac.kr",
+      "value": "fostrim012@gmail.com",
       "href": ""
     },
     {
