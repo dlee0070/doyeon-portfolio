@@ -50,6 +50,33 @@ window.SITE_DATA = {
   ],
   "works": [
     {
+      "id": "bojagi",
+      "title": "Bojagi",
+      "year": "2026",
+      "cover": "content/media/bojagi/b-4k.png",
+      "media": [
+        {
+          "type": "video",
+          "src": "content/media/bojagi/v1-ghost.mp4",
+          "caption": ""
+        }
+      ],
+      "description": "Jogakbo is a traditional Korean wrapping cloth made by piecing together leftover fabric scraps. In this artwork, delicate silk pieces allow light to filter through, deepening in shade only where the layers overlap. As a wave of stitching sweeps from left to right, pressed petals, pearls, and beads attach to each fragment in turn, only to gently unravel. In this seamlessly looping video, the cloth never truly ends, no matter where you begin watching. Its form was calculated through code, while the fabric textures were rendered using generative AI.",
+      "links": [],
+      "medium": "Single channel video ",
+      "duration": "0:55",
+      "format": "",
+      "role": "",
+      "tools": "HTML5 Canvas 2D, Javascript, ComfyUI",
+      "credits": "",
+      "exhibitions": [],
+      "themes": [
+        "heritage",
+        "moving"
+      ],
+      "descriptionKo": "조각보는 남은 천을 이어 만든 보자기입니다. 이 작품의 얇은 명주 조각들은 빛을 통과시키고, 겹친 자리만 조금 더 짙게 비칩니다. 왼쪽에서 오른쪽으로 바느질의 물결이 지나가면 조각마다 눌린 꽃잎과 진주와 비즈가 차례로 달렸다가 다시 풀립니다. 루프로 이어지는 영상에서 이 보자기는 어디서 보기 시작해도 끝나지 않습니다. 형태는 코드로 계산하고, 천의 질감은 생성형 AI로 채웠습니다.\n"
+    },
+    {
       "id": "pompeii-heritage-xr-reseravtion-galaxy-xr",
       "title": "Pompeii Heritage XR Reseravtion - Galaxy XR",
       "year": "2026",
