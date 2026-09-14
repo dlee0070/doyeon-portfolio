@@ -16,6 +16,10 @@
   /* 웹(GitHub Pages)에서 열리면 로컬 서버 대신 이 저장소에 직접 커밋한다 */
   var GH = { owner: 'doyeonleeportfolio', repo: 'doyeonleeportfolio.github.io', branch: 'main' };
   var SITE_URL = 'https://doyeonleeportfolio.github.io';
+  /* 권한이 미리 채워진 토큰 만들기 링크 — 고를 게 적어야 틀리지 않는다.
+     public_repo = 공개 저장소 쓰기 (이 사이트 저장소가 공개라 이것만으로 충분) */
+  var TOKEN_URL = 'https://github.com/settings/tokens/new?scopes=public_repo&description=' +
+    encodeURIComponent('포트폴리오 관리도구 — ' + GH.repo);
   var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
   var MAX_WEB_UPLOAD = 50 * 1024 * 1024;   // ponytail: GitHub 이 50MB 넘는 파일에 경고한다 — 더 큰 영상은 압축하거나 로컬 관리도구(git push)로
   var store = null;          // GitHubStore — 웹에서 로그인한 뒤에만 생긴다
@@ -278,7 +282,7 @@
           return;
         }
         var why = e.status === 401 ? '로그인이 만료되었습니다 — 로그아웃 후 새 토큰으로 다시 로그인해 주세요'
-          : e.status === 403 || e.status === 404 ? '저장 권한이 없습니다 — 토큰의 Contents 권한(Read and write)과 조직 승인을 확인해 주세요'
+          : e.status === 403 || e.status === 404 ? '저장 권한이 없습니다 — 오른쪽 위 로그아웃 → 「토큰 만들기」로 새 토큰을 만들어 다시 로그인해 주세요'
           : '저장 실패';
         toast(why);
         /* 토스트는 금방 사라진다 — 이유는 상단 상태줄에 남긴다 */
@@ -1061,9 +1065,8 @@
 
   function loginError(e) {
     if (e.status === 401) return '토큰이 올바르지 않거나 만료되었습니다 — 새로 만들어 붙여넣어 주세요';
-    if (e.status === 403) return '이 토큰으로는 저장할 수 없습니다 — Resource owner 가 ' + GH.owner +
-      ' 인지, Contents 가 Read and write 인지, 조직 승인 대기(Pending)가 아닌지 확인해 주세요 · GitHub: ' + e.message;
-    if (e.status === 404) return '저장소를 찾을 수 없습니다 — 2번의 저장소 선택을 확인해 주세요';
+    if (e.status === 403) return '이 토큰으로는 저장할 수 없습니다 — 위 「토큰 만들기」로 새 토큰을 만들어 붙여넣어 주세요 · GitHub: ' + e.message;
+    if (e.status === 404) return '이 토큰으로는 저장소에 접근할 수 없습니다 — 위 「토큰 만들기」로 새 토큰을 만들어 붙여넣어 주세요';
     return '로그인 실패: ' + e.message;
   }
 
@@ -1091,14 +1094,13 @@
     var how = el('p', 'deploy-note');
     how.innerHTML =
       '처음 한 번만 GitHub 토큰이 필요합니다.<br>' +
-      '1. <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener"><u>토큰 만들기 ↗</u></a> (GitHub 로그인)<br>' +
-      '2. Resource owner: <b>' + GH.owner + '</b> · Repository access: <b>Only select repositories</b> → <b>' + GH.repo + '</b><br>' +
-      '3. Permissions → <b>Contents</b> → <b>Read and write</b> → Generate token<br>' +
-      '4. 만들어진 토큰을 아래에 붙여넣기 — 이 브라우저에만 저장됩니다';
+      '1. <a href="' + TOKEN_URL + '" target="_blank" rel="noopener"><u>토큰 만들기 ↗</u></a> — 이름과 권한(public_repo)이 미리 채워져 있습니다<br>' +
+      '2. <b>Expiration</b>(유효기간)만 고르고 맨 아래 <b>Generate token</b><br>' +
+      '3. 나온 토큰(ghp_…)을 복사해서 아래에 붙여넣기 — 이 브라우저에만 저장됩니다';
     box.appendChild(how);
     var tok = document.createElement('input');
     tok.type = 'password';
-    tok.placeholder = 'github_pat_…';
+    tok.placeholder = 'ghp_…';
     tok.autocomplete = 'off';
     box.appendChild(tok);
     var go = el('button', 'banner-retry', '로그인');
